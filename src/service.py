@@ -18,7 +18,7 @@ class Service:
         return db.query(sql)
 
     def get_match_list(self, world_id):
-        sql = "SELECT DISTINCT match_id FROM death_event WHERE world_id = ?"
+        sql = "SELECT DISTINCT match_id FROM death_event WHERE world_id = ? AND match_id != 0"
         return db.query(sql, [world_id])
 
     def get_vehicle_kills(self, match_id):

@@ -52,7 +52,7 @@ controlpanel.create_group(
 )
 
 world_dropdown = components.create_dropdown(f"world", "World", util.format_for_dropdown("name", "world_id", service.get_world_list()), "1", multi=False)
-version_dropdown = components.create_dropdown(f"match", "Match", list(), "403", multi=False)
+version_dropdown = components.create_dropdown(f"match", "Match", list(), "-1", multi=False)
 controlpanel.add_element(world_dropdown, "Options")
 controlpanel.add_element(version_dropdown, "Options")
 

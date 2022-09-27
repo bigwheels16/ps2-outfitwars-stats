@@ -29,4 +29,4 @@ if __name__ == "__main__":
         #     'requests_pathname_prefix': BASE_URL_PATH + "/"
         # })
 
-        uvicorn.run(server, host='0.0.0.0', port=8080, debug=True)
+        uvicorn.run(server, host='0.0.0.0', port=8080, debug=False)
