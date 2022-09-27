@@ -1,24 +1,21 @@
-ARG PYTHON_VERSION=3.9.10
+ARG PYTHON_VERSION=3.9.1
 
-FROM python:${PYTHON_VERSION}-slim
+FROM python:${PYTHON_VERSION}
+ARG PYTHON_VERSION
 RUN echo "Building with Python version $PYTHON_VERSION"
 
-ENV PYTHONPATH=/app/deps
-
-RUN apt update && apt upgrade -y
-
-RUN adduser --no-create-home --disabled-login --disabled-password --shell /bin/false --gecos "" --uid 1001 user && \
-    mkdir /app && \
-    chown user:user /app
-
-USER user
+RUN useradd -m -u 1000 user
+EXPOSE 8080
 
 WORKDIR /app
+ENV PYTHONPATH="/app/src:${PYTHONPATH}"
 
-COPY --chown=user:user requirements.txt /app
-RUN pip install --no-cache-dir --disable-pip-version-check -r requirements.txt -t /app/deps
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
+COPY . /app
+RUN chown 1000:1000 -R /app
 
-COPY --chown=user:user . /app
-RUN python -m unittest discover -p '*_test.py'
+# Security context in k8s requires uid as user
+USER 1000
 
-CMD ["python3", "/app/src/app.py"]
+CMD ["python", "src/bootstrap.py"]

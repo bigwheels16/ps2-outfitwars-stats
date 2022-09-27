@@ -24,7 +24,11 @@ meta_tags = [
 ]
 
 
-app = Dash(__name__, title="PS2 Outfit Wars Stats", server=True, assets_folder="../assets", external_stylesheets=external_stylesheets)
+app = Dash(__name__,
+           title="PS2 Outfit Wars Stats",
+           server=True,
+           assets_folder="../assets",
+           external_stylesheets=external_stylesheets)
 
 service = Service()
 events = service.get_kill_events(1660173742)
@@ -48,7 +52,7 @@ controlpanel.create_group(
 )
 
 world_dropdown = components.create_dropdown(f"world", "World", util.format_for_dropdown("name", "world_id", service.get_world_list()), "1", multi=False)
-version_dropdown = components.create_dropdown(f"match", "Match", list(), "", multi=False)
+version_dropdown = components.create_dropdown(f"match", "Match", list(), "403", multi=False)
 controlpanel.add_element(world_dropdown, "Options")
 controlpanel.add_element(version_dropdown, "Options")
 
@@ -63,7 +67,7 @@ app.layout = dui.Layout(
     Input(f"world_dropdown", "value"),
 )
 def update_match_list(world_id):
-    return list(map(lambda x: {"label": f"{x['zone_id'] >> 16} [{x['zone_id']}]", "value": x["zone_id"]}, service.get_match_list(world_id)))
+    return list(map(lambda x: {"label": f"{x['match_id']}", "value": x["match_id"]}, service.get_match_list(world_id)))
 
 
 @app.callback(
@@ -71,32 +75,54 @@ def update_match_list(world_id):
     Input(f"match_dropdown", "value"),
 )
 def update_vehicle_kills(zone_id):
-    if zone_id:
+    col1 = "Vehicles Lost"
+    col2 = "Kills"
+    col3 = "Attacker"
+
+    if zone_id is not None:
         vehicles_killed_list = service.get_vehicle_kills(zone_id)
+        # print(vehicles_killed_list)
+
+        def get_attacker(r):
+            if r['is_suicide'] == 1:
+                return "Suicide"
+            elif r['attacker_outfit'] is None:
+                return "Unknown"
+            elif r['attacker_outfit'] == r['defender_outfit']:
+                return "Team Kill"
+            else:
+                return "Opponent"
 
         vehicles_lost = []
         amount = []
         outfit = []
         for row in vehicles_killed_list:
+            vehicle_name = "%s %s" % (row['vehicle_category'], row['vehicle_name']) if row['vehicle_category'] else row['vehicle_name']
+
             amount.append(row["num"])
-            vehicles_lost.append(f"{row['vehicle_name']} [{row['defender_outfit']}]")
-            outfit.append(row['attacker_outfit'])
+            vehicles_lost.append(f"{vehicle_name} [{row['defender_outfit']}]")
+            outfit.append(get_attacker(row))
 
         # assume you have a "long-form" data frame
         # see https://plotly.com/python/px-arguments/ for more options
         df = pd.DataFrame({
-            "Vehicles Lost": vehicles_lost,
-            "Kills": amount,
-            "Attacker Outfit": outfit
+            col1: vehicles_lost,
+            col2: amount,
+            col3: outfit
         })
     else:
         df = pd.DataFrame({
-            "Vehicles Lost": [],
-            "Kills": [],
-            "Attacker Outfit": []
+            col1: [],
+            col2: [],
+            col3: []
         })
 
-    fig = px.bar(df, x="Kills", y="Vehicles Lost", color="Attacker Outfit", barmode="relative", height=800)
+    fig = px.bar(df, x=col2, y=col1, color=col3, barmode="relative", height=800, title="Vehicles Lost by Team",
+                 color_discrete_map={"Opponent": "red", "Team Kill": "blue", "Suicide": "orange", "Unknown": "green"},
+                 category_orders={
+                     col1: sorted(set(df[col1].values)),
+                     col3: ["Opponent", "Team Kill", "Suicide", "Unknown"]})
+
     config = dict({"autosizable": True, "sendData": True, "displayModeBar": True, "modeBarButtonsToRemove": ['zoom', 'pan']})
     graph = dcc.Graph(
         id="vehicles_lost_graph",
@@ -104,9 +130,3 @@ def update_vehicle_kills(zone_id):
         config=config
     )
     return [graph]
-
-
-if __name__ == '__main__':
-    # https://dash.plotly.com/devtools
-    # `app.run_server(host='127.0.0.1', port='7080', proxy=None, debug=False, dev_tools_ui=None, dev_tools_props_check=None, dev_tools_serve_dev_bundles=None, dev_tools_hot_reload=None, dev_tools_hot_reload_interval=None, dev_tools_hot_reload_watch_interval=None, dev_tools_hot_reload_max_retry=None, dev_tools_silence_routes_logging=None, dev_tools_prune_errors=None, **flask_run_options)`
-    app.run_server(host="0.0.0.0", port="8080", debug=True)

@@ -18,24 +18,27 @@ class Service:
         return db.query(sql)
 
     def get_match_list(self, world_id):
-        sql = "SELECT DISTINCT zone_id FROM death_event WHERE zone_id > 65535 AND world_id = ?"
+        sql = "SELECT DISTINCT match_id FROM death_event WHERE world_id = ?"
         return db.query(sql, [world_id])
 
-    def get_vehicle_kills(self, zone_id):
+    def get_vehicle_kills(self, match_id):
         sql = "SELECT COUNT(1) AS num, attacker_outfit.alias AS attacker_outfit, " \
-              "defender_outfit.alias AS defender_outfit, defender_vehicle_info.name AS vehicle_name " \
+              "defender_outfit.alias AS defender_outfit, defender_vehicle_info.name AS vehicle_name, " \
+              "defender_vehicle_info.vehicle_id AS vehicle_id, defender_vehicle_info.category AS vehicle_category," \
+              "e.character_id = e.attacker_character_id AS is_suicide  " \
               "FROM vehicle_destroy_event e " \
               "LEFT JOIN character_info defender ON e.character_id = defender.character_id " \
               "LEFT JOIN outfit_info defender_outfit ON defender.outfit_id = defender_outfit.outfit_id " \
               "LEFT JOIN character_info attacker ON e.attacker_character_id = attacker.character_id " \
               "LEFT JOIN outfit_info attacker_outfit ON attacker.outfit_id = attacker_outfit.outfit_id " \
               "JOIN vehicle_info defender_vehicle_info ON e.character_vehicle_id = defender_vehicle_info.vehicle_id " \
-              "WHERE e.zone_id = ? " \
-              "GROUP BY attacker_outfit.alias, defender_outfit.alias, defender_vehicle_info.name " \
-              "ORDER BY defender_vehicle_info.name DESC"
-        return db.query(sql, [zone_id])
+              "WHERE e.match_id = ? " \
+              "GROUP BY attacker_outfit.alias, defender_outfit.alias, defender_vehicle_info.name, " \
+              "defender_vehicle_info.vehicle_id, defender_vehicle_info.category, is_suicide " \
+              "ORDER BY vehicle_name DESC"
+        return db.query(sql, [match_id])
 
-    def get_kill_events(self, zone_id):
+    def get_kill_events(self, match_id):
         sql = "SELECT COUNT(1) AS num, SUM(is_headshot) AS num_headshot, attacker_faction.alias AS attacker_faction, defender_faction.alias AS defender_faction " \
               "FROM death_event e " \
               "LEFT JOIN zone_info ON e.zone_id = zone_info.zone_id " \
@@ -43,9 +46,9 @@ class Service:
               "LEFT JOIN faction_info attacker_faction ON attacker.faction_id = attacker_faction.faction_id " \
               "LEFT JOIN loadout_info defender ON e.character_loadout_id = defender.loadout_id " \
               "LEFT JOIN faction_info defender_faction ON defender.faction_id = defender_faction.faction_id " \
-              "WHERE e.zone_id = ? " \
+              "WHERE e.match_id = ? " \
               "GROUP BY attacker_faction.alias, defender_faction.alias"
-        return db.query(sql, [zone_id])
+        return db.query(sql, [match_id])
 
     def get_zone_info(self):
         return db.query("SELECT zone_id, name FROM zone_info")
