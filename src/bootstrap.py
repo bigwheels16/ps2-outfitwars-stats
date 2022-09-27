@@ -7,9 +7,7 @@ import main
 
 
 if __name__ == "__main__":
-    dev = True
-
-    if dev:
+    if config.IS_DEV():
         # https://dash.plotly.com/devtools
         # `app.run_server(host='127.0.0.1', port='7080', proxy=None, debug=False, dev_tools_ui=None, dev_tools_props_check=None, dev_tools_serve_dev_bundles=None, dev_tools_hot_reload=None, dev_tools_hot_reload_interval=None, dev_tools_hot_reload_watch_interval=None, dev_tools_hot_reload_max_retry=None, dev_tools_silence_routes_logging=None, dev_tools_prune_errors=None, **flask_run_options)`
         main.app.run_server(host="0.0.0.0", port="8080", debug=True)

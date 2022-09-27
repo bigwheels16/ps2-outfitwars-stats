@@ -32,3 +32,6 @@ def DB_DATABASE():
 
 def BASE_URL_PATH():
     return get_env_string("BASE_URL_PATH")
+
+def IS_DEV():
+    return get_env_bool("IS_DEV", False)
