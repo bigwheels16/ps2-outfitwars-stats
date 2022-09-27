@@ -3,6 +3,6 @@ dash_ui==0.4.0
 pandas==1.4.3
 mysql-connector-python==8.0.26
 SQLAlchemy==1.4.22
-dash-bootstrap-components=1.2.1
+dash-bootstrap-components==1.2.1
 uvicorn==0.14.0
 fastapi==0.65.2
