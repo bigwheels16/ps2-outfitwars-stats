@@ -5,6 +5,7 @@ from service import Service
 import util
 import components
 import dash_ui as dui
+import config, db
 
 
 external_stylesheets = [
@@ -30,14 +31,23 @@ app = Dash(__name__,
            assets_folder="../assets",
            external_stylesheets=external_stylesheets)
 
-service = Service()
+db = db.DB()
+db.connect_mysql(config.DB_HOST(),
+                 config.DB_PORT(),
+                 config.DB_USERNAME(),
+                 config.DB_PASSWORD(),
+                 config.DB_DATABASE())
+
+service = Service(db)
 events = service.get_kill_events(1660173742)
 df2 = pd.DataFrame(events, dtype=str)
 
 div = html.Div(children=[
     html.H1(children="PS2 Outfit Wars Stats"),
 
-    html.Div(id="output"),
+    html.Div(id="output1"),
+
+    html.Div(id="output2"),
 
     # dash_table.DataTable(data=df2.to_dict("records"), columns=[{"name": i, "id": i} for i in df2.columns])
 ])
@@ -71,16 +81,16 @@ def update_match_list(world_id):
 
 
 @app.callback(
-    Output(f"output", "children"),
+    Output(f"output1", "children"),
     Input(f"match_dropdown", "value"),
 )
-def update_vehicle_kills(zone_id):
+def update_vehicle_kills(match_id):
     col1 = "Vehicles Lost"
     col2 = "Kills"
     col3 = "Attacker"
 
-    if zone_id is not None:
-        vehicles_killed_list = service.get_vehicle_kills(zone_id)
+    if match_id is not None:
+        results = service.get_vehicle_kills(match_id)
         # print(vehicles_killed_list)
 
         def get_attacker(r):
@@ -93,22 +103,22 @@ def update_vehicle_kills(zone_id):
             else:
                 return "Opponent"
 
-        vehicles_lost = []
-        amount = []
-        outfit = []
-        for row in vehicles_killed_list:
+        col1_values = []
+        col2_values = []
+        col3_values = []
+        for row in results:
             vehicle_name = "%s %s" % (row['vehicle_category'], row['vehicle_name']) if row['vehicle_category'] else row['vehicle_name']
 
-            amount.append(row["num"])
-            vehicles_lost.append(f"{vehicle_name} [{row['defender_outfit']}]")
-            outfit.append(get_attacker(row))
+            col2_values.append(row["num"])
+            col1_values.append(f"{vehicle_name} [{row['defender_outfit']}]")
+            col3_values.append(get_attacker(row))
 
         # assume you have a "long-form" data frame
         # see https://plotly.com/python/px-arguments/ for more options
         df = pd.DataFrame({
-            col1: vehicles_lost,
-            col2: amount,
-            col3: outfit
+            col1: col1_values,
+            col2: col2_values,
+            col3: col3_values
         })
     else:
         df = pd.DataFrame({
@@ -123,10 +133,61 @@ def update_vehicle_kills(zone_id):
                      col1: sorted(set(df[col1].values)),
                      col3: ["Opponent", "Team Kill", "Suicide", "Unknown"]})
 
-    config = dict({"autosizable": True, "sendData": True, "displayModeBar": True, "modeBarButtonsToRemove": ['zoom', 'pan']})
+    conf = dict({"autosizable": True, "sendData": True, "displayModeBar": True, "modeBarButtonsToRemove": ['zoom', 'pan']})
     graph = dcc.Graph(
         id="vehicles_lost_graph",
         figure=fig,
-        config=config
+        config=conf
+    )
+    return [graph]
+
+
+@app.callback(
+    Output(f"output2", "children"),
+    Input(f"match_dropdown", "value"),
+)
+def update_infantry_stats(match_id):
+    col1 = "Action"
+    col2 = "Count"
+    col3 = "Outfit"
+
+    if match_id is not None:
+        results = service.get_infantry_stats(match_id)
+
+        # print(vehicles_killed_list)
+
+        col1_values = []
+        col2_values = []
+        col3_values = []
+        for row in results:
+            col2_values.append(row["num"])
+            col1_values.append(f"{row['action']} [{row['outfit']}]")
+            col3_values.append(row["outfit"])
+
+        # assume you have a "long-form" data frame
+        # see https://plotly.com/python/px-arguments/ for more options
+        df = pd.DataFrame({
+            col1: col1_values,
+            col2: col2_values,
+            col3: col3_values
+        })
+    else:
+        df = pd.DataFrame({
+            col1: [],
+            col2: [],
+            col3: []
+        })
+
+    fig = px.bar(df, x=col2, y=col1, color=col3, barmode="relative", height=800, title="Infantry Stats",
+                 category_orders={
+                     col1: sorted(set(df[col1].values))
+                 })
+
+    conf = dict(
+        {"autosizable": True, "sendData": True, "displayModeBar": True, "modeBarButtonsToRemove": ['zoom', 'pan']})
+    graph = dcc.Graph(
+        id="vehicles_lost_graph",
+        figure=fig,
+        config=conf
     )
     return [graph]

@@ -1,25 +1,14 @@
-import config
-import db
-
-db = db.DB()
-db.connect_mysql(config.DB_HOST(),
-                 config.DB_PORT(),
-                 config.DB_USERNAME(),
-                 config.DB_PASSWORD(),
-                 config.DB_DATABASE())
-
-
 class Service:
-    def __init__(self):
-        pass
+    def __init__(self, db):
+        self.db = db
 
     def get_world_list(self):
         sql = "SELECT world_id, name FROM world_info ORDER BY name ASC"
-        return db.query(sql)
+        return self.db.query(sql)
 
     def get_match_list(self, world_id):
         sql = "SELECT DISTINCT match_id FROM death_event WHERE world_id = ? AND match_id != 0"
-        return db.query(sql, [world_id])
+        return self.db.query(sql, [world_id])
 
     def get_vehicle_kills(self, match_id):
         sql = "SELECT COUNT(1) AS num, attacker_outfit.alias AS attacker_outfit, " \
@@ -36,7 +25,17 @@ class Service:
               "GROUP BY attacker_outfit.alias, defender_outfit.alias, defender_vehicle_info.name, " \
               "defender_vehicle_info.vehicle_id, defender_vehicle_info.category, is_suicide " \
               "ORDER BY vehicle_name DESC"
-        return db.query(sql, [match_id])
+        return self.db.query(sql, [match_id])
+
+    def get_infantry_stats(self, match_id):
+        sql = "SELECT COUNT(1) AS num, outfit.alias AS outfit, e.experience_id, xp.description AS action " \
+              "FROM gain_experience_event e " \
+              "LEFT JOIN character_info c ON e.character_id = c.character_id " \
+              "LEFT JOIN outfit_info outfit ON c.outfit_id = outfit.outfit_id " \
+              "LEFT JOIN experience_info xp ON e.experience_id = xp.experience_id " \
+              "WHERE e.match_id = ? AND e.experience_id IN (1, 2, 3, 4, 5, 6, 7, 37, 51, 53, 56, 30, 142, 201, 233, 277, 335, 355, 592) " \
+              "GROUP BY outfit.alias, e.experience_id, xp.description"
+        return self.db.query(sql, [match_id])
 
     def get_kill_events(self, match_id):
         sql = "SELECT COUNT(1) AS num, SUM(is_headshot) AS num_headshot, attacker_faction.alias AS attacker_faction, defender_faction.alias AS defender_faction " \
@@ -48,10 +47,10 @@ class Service:
               "LEFT JOIN faction_info defender_faction ON defender.faction_id = defender_faction.faction_id " \
               "WHERE e.match_id = ? " \
               "GROUP BY attacker_faction.alias, defender_faction.alias"
-        return db.query(sql, [match_id])
+        return self.db.query(sql, [match_id])
 
     def get_zone_info(self):
-        return db.query("SELECT zone_id, name FROM zone_info")
+        return self.db.query("SELECT zone_id, name FROM zone_info")
 
     def get_resist_type_list(self, version_id):
         return db.query("SELECT damage_type_id, name FROM damage_type WHERE version_id = ? ORDER BY damage_type_id ASC", [version_id])
@@ -65,21 +64,21 @@ class Service:
             ORDER BY name ASC
         """
 
-        return db.query(sql, [version_id, resist_type_id, resist_type_id])
+        return self.db.query(sql, [version_id, resist_type_id, resist_type_id])
 
     def get_version_list(self):
-        return db.query("SELECT id, name FROM version ORDER BY order ASC")
+        return self.db.query("SELECT id, name FROM version ORDER BY order ASC")
 
     def get_weapon_list(self):
-        return db.query("SELECT DISTINCT weapon_id, name FROM weapon ORDER BY weapon_id ASC")
+        return self.db.query("SELECT DISTINCT weapon_id, name FROM weapon ORDER BY weapon_id ASC")
 
     def get_target_list(self):
-        return db.query("SELECT DISTINCT t.target_id, t.name FROM target t "
+        return self.db.query("SELECT DISTINCT t.target_id, t.name FROM target t "
                         "JOIN damage_resistance r ON (t.target_id = r.target_id AND t.version_id = r.version_id) "
                         "ORDER BY t.target_id ASC")
 
     def get_direction_list(self):
-        return db.query("SELECT id, name FROM attack_direction ORDER BY id")
+        return self.db.query("SELECT id, name FROM attack_direction ORDER BY id")
 
     def get_damage(self, version, weapons, targets, directions):
         if not weapons:
@@ -121,7 +120,7 @@ class Service:
             for q in directions:
                 params.append(q)
 
-        rows = db.query(sql, params)
+        rows = self.db.query(sql, params)
 
         data = []
         for row in rows:
