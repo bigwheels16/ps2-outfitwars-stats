@@ -47,15 +47,9 @@ div = html.Div(children=[
 
     html.Div(id="output2"),
 
-    html.Div(children=[
-        html.H1("Vehicle Kills By Weapon"),
-        html.Div(id="output3")
-    ]),
+    html.Div(id="output3"),
 
-    html.Div(children=[
-        html.H1("Vehicle Deaths By Weapon"),
-        html.Div(id="output4")
-    ]),
+    html.Div(id="output4"),
 ])
 
 grid = dui.Grid(_id=f"grid", num_rows=2, num_cols=1, grid_padding=5)
@@ -68,7 +62,7 @@ controlpanel.create_group(
 )
 
 world_dropdown = components.create_dropdown(f"world", "World", util.format_for_dropdown("name", "world_id", service.get_world_list()), "1", multi=False)
-version_dropdown = components.create_dropdown(f"match", "Match", list(), "-1", multi=False)
+version_dropdown = components.create_dropdown(f"match", "Match", list(), "0", multi=False)
 controlpanel.add_element(world_dropdown, "Options")
 controlpanel.add_element(version_dropdown, "Options")
 
@@ -91,47 +85,43 @@ def update_match_list(world_id):
     Input(f"match_dropdown", "value"),
 )
 def update_vehicle_kills(match_id):
+    if not match_id:
+        return []
+
     col1 = "Vehicles Lost"
     col2 = "Kills"
     col3 = "Attacker"
 
-    if match_id is not None:
-        results = service.get_vehicle_kills(match_id)
-        # print(vehicles_killed_list)
+    results = service.get_vehicle_kills(match_id)
+    # print(vehicles_killed_list)
 
-        def get_attacker(r):
-            if r['is_suicide'] == 1:
-                return "Suicide"
-            elif r['attacker_outfit'] is None:
-                return "Unknown"
-            elif r['attacker_outfit'] == r['defender_outfit']:
-                return "Team Kill"
-            else:
-                return "Opponent"
+    def get_attacker(r):
+        if r['is_suicide'] == 1:
+            return "Suicide"
+        elif r['attacker_outfit'] is None:
+            return "Unknown"
+        elif r['attacker_outfit'] == r['defender_outfit']:
+            return "Team Kill"
+        else:
+            return "Opponent"
 
-        col1_values = []
-        col2_values = []
-        col3_values = []
-        for row in results:
-            vehicle_name = "%s %s" % (row['vehicle_category'], row['vehicle_name']) if row['vehicle_category'] else row['vehicle_name']
+    col1_values = []
+    col2_values = []
+    col3_values = []
+    for row in results:
+        vehicle_name = "%s %s" % (row['vehicle_category'], row['vehicle_name']) if row['vehicle_category'] else row['vehicle_name']
 
-            col2_values.append(row["num"])
-            col1_values.append(f"{vehicle_name} [{row['defender_outfit']}]")
-            col3_values.append(get_attacker(row))
+        col2_values.append(row["num"])
+        col1_values.append(f"{vehicle_name} [{row['defender_outfit']}]")
+        col3_values.append(get_attacker(row))
 
-        # assume you have a "long-form" data frame
-        # see https://plotly.com/python/px-arguments/ for more options
-        df = pd.DataFrame({
-            col1: col1_values,
-            col2: col2_values,
-            col3: col3_values
-        })
-    else:
-        df = pd.DataFrame({
-            col1: [],
-            col2: [],
-            col3: []
-        })
+    # assume you have a "long-form" data frame
+    # see https://plotly.com/python/px-arguments/ for more options
+    df = pd.DataFrame({
+        col1: col1_values,
+        col2: col2_values,
+        col3: col3_values
+    })
 
     fig = px.bar(df, x=col2, y=col1, color=col3, barmode="relative", height=800, title="Vehicles Lost by Team",
                  color_discrete_map={"Opponent": "red", "Team Kill": "blue", "Suicide": "orange", "Unknown": "green"},
@@ -153,36 +143,32 @@ def update_vehicle_kills(match_id):
     Input(f"match_dropdown", "value"),
 )
 def update_infantry_stats(match_id):
+    if not match_id:
+        return []
+
     col1 = "Action"
     col2 = "Count"
     col3 = "Outfit"
 
-    if match_id is not None:
-        results = service.get_infantry_stats(match_id)
+    results = service.get_infantry_stats(match_id)
 
-        # print(vehicles_killed_list)
+    # print(vehicles_killed_list)
 
-        col1_values = []
-        col2_values = []
-        col3_values = []
-        for row in results:
-            col2_values.append(row["num"])
-            col1_values.append(f"{row['action']} [{row['outfit']}]")
-            col3_values.append(row["outfit"])
+    col1_values = []
+    col2_values = []
+    col3_values = []
+    for row in results:
+        col2_values.append(row["num"])
+        col1_values.append(f"{row['action']} [{row['outfit']}]")
+        col3_values.append(row["outfit"])
 
-        # assume you have a "long-form" data frame
-        # see https://plotly.com/python/px-arguments/ for more options
-        df = pd.DataFrame({
-            col1: col1_values,
-            col2: col2_values,
-            col3: col3_values
-        })
-    else:
-        df = pd.DataFrame({
-            col1: [],
-            col2: [],
-            col3: []
-        })
+    # assume you have a "long-form" data frame
+    # see https://plotly.com/python/px-arguments/ for more options
+    df = pd.DataFrame({
+        col1: col1_values,
+        col2: col2_values,
+        col3: col3_values
+    })
 
     fig = px.bar(df, x=col2, y=col1, color=col3, barmode="relative", height=800, title="Infantry Stats",
                  category_orders={
@@ -204,6 +190,9 @@ def update_infantry_stats(match_id):
     Input(f"match_dropdown", "value"),
 )
 def update_kills_by_weapon(match_id):
+    if not match_id:
+        return []
+
     events = service.get_kills_by_weapon(match_id)
     for row in events:
         row['kills'] -= row['team_kills']
@@ -211,13 +200,15 @@ def update_kills_by_weapon(match_id):
 
     df2 = pd.DataFrame(events)
 
-    return dash_table.DataTable(data=df2.to_dict("records"),
-                                columns=[{"name": i, "id": i} for i in df2.columns],
-                                page_size=20,
-                                sort_action="native",
-                                sort_by=[{"column_id": "kills", "direction": "desc"}],
-                                page_action="native"
-                                )
+    return [
+        html.H1("Vehicle Kills By Weapon"),
+        dash_table.DataTable(data=df2.to_dict("records"),
+                             columns=[{"name": i, "id": i} for i in df2.columns],
+                             page_size=20,
+                             sort_action="native",
+                             sort_by=[{"column_id": "kills", "direction": "desc"}],
+                             page_action="native")
+        ]
 
 
 @app.callback(
@@ -225,6 +216,9 @@ def update_kills_by_weapon(match_id):
     Input(f"match_dropdown", "value"),
 )
 def update_vehicle_deaths_by_weapon(match_id):
+    if not match_id:
+        return []
+
     events = service.get_vehicle_deaths_by_weapon(match_id)
     for row in events:
         row['deaths'] -= row['team_deaths']
@@ -232,9 +226,12 @@ def update_vehicle_deaths_by_weapon(match_id):
 
     df2 = pd.DataFrame(events)
 
-    return dash_table.DataTable(data=df2.to_dict("records"),
-                                columns=[{"name": i, "id": i} for i in df2.columns],
-                                page_size=20,
-                                sort_action="native",
-                                sort_by=[{"column_id": "deaths", "direction": "desc"}],
-                                page_action="native")
+    return [
+        html.H1("Vehicle Deaths By Weapon"),
+        dash_table.DataTable(data=df2.to_dict("records"),
+                             columns=[{"name": i, "id": i} for i in df2.columns],
+                             page_size=20,
+                             sort_action="native",
+                             sort_by=[{"column_id": "deaths", "direction": "desc"}],
+                             page_action="native")
+        ]
