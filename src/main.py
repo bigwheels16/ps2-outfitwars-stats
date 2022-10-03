@@ -62,7 +62,7 @@ controlpanel.create_group(
 )
 
 world_dropdown = components.create_dropdown(f"world", "World", util.format_for_dropdown("name", "world_id", service.get_world_list()), "1", multi=False)
-version_dropdown = components.create_dropdown(f"match", "Match", list(), "0", multi=False)
+version_dropdown = components.create_dropdown(f"match", "Match", list(), None, multi=False)
 controlpanel.add_element(world_dropdown, "Options")
 controlpanel.add_element(version_dropdown, "Options")
 
@@ -77,7 +77,7 @@ app.layout = dui.Layout(
     Input(f"world_dropdown", "value"),
 )
 def update_match_list(world_id):
-    return list(map(lambda x: {"label": f"{x['match_id']}", "value": x["match_id"]}, service.get_match_list(world_id)))
+    return list(map(lambda x: {"label": f"{x['match_id']}", "value": x["match_id"]}, reversed(service.get_match_list(world_id))))
 
 
 @app.callback(
