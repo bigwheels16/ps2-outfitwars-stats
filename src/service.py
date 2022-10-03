@@ -53,8 +53,25 @@ class Service:
               "LEFT JOIN outfit_info attacker_outfit ON attacker.outfit_id = attacker_outfit.outfit_id " \
               "LEFT JOIN vehicle_info attacker_vehicle_info ON e.attacker_vehicle_id = attacker_vehicle_info.vehicle_id " \
               "WHERE e.match_id = ? " \
-              "GROUP BY e.attacker_weapon_id, attacker_outfit.alias, attacker_vehicle_info.name, w.name " \
-              "ORDER BY kills DESC"
+              "GROUP BY e.attacker_weapon_id, attacker_outfit.alias, attacker_vehicle_info.name, w.name "
+        return self.db.query(sql, [match_id])
+
+    def get_vehicle_deaths_by_weapon(self, match_id):
+        sql = "SELECT COALESCE(w.name, IF(e.attacker_weapon_id = 0, 'Ram/Roadkill/Fall', e.attacker_weapon_id)) AS weapon, " \
+              "defender_vehicle_info.name AS vehicle_name, " \
+              "defender_outfit.alias AS defender_outfit, " \
+              "COUNT(1) AS deaths, " \
+              "SUM(IF(defender_outfit.alias = attacker_outfit.alias, 1, 0)) AS team_deaths, " \
+              "SUM(IF(e.character_id = e.attacker_character_id, 1, 0)) AS suicides " \
+              "FROM vehicle_destroy_event e " \
+              "LEFT JOIN weapon_info w ON e.attacker_weapon_id = w.item_id " \
+              "LEFT JOIN character_info defender ON e.character_id = defender.character_id " \
+              "LEFT JOIN outfit_info defender_outfit ON defender.outfit_id = defender_outfit.outfit_id " \
+              "LEFT JOIN character_info attacker ON e.attacker_character_id = attacker.character_id " \
+              "LEFT JOIN outfit_info attacker_outfit ON attacker.outfit_id = attacker_outfit.outfit_id " \
+              "LEFT JOIN vehicle_info defender_vehicle_info ON e.character_vehicle_id = defender_vehicle_info.vehicle_id " \
+              "WHERE e.match_id = ? " \
+              "GROUP BY e.attacker_weapon_id, defender_outfit.alias, defender_vehicle_info.name, w.name "
         return self.db.query(sql, [match_id])
 
     def get_damage(self, version, weapons, targets, directions):

@@ -47,7 +47,15 @@ div = html.Div(children=[
 
     html.Div(id="output2"),
 
-    html.Div(id="output3"),
+    html.Div(children=[
+        html.H1("Vehicle Kills By Weapon"),
+        html.Div(id="output3")
+    ]),
+
+    html.Div(children=[
+        html.H1("Vehicle Deaths By Weapon"),
+        html.Div(id="output4")
+    ]),
 ])
 
 grid = dui.Grid(_id=f"grid", num_rows=2, num_cols=1, grid_padding=5)
@@ -201,10 +209,32 @@ def update_kills_by_weapon(match_id):
         row['kills'] -= row['team_kills']
         row['team_kills'] -= row['suicides']
 
-    # TODO calculate real total kills and real team kills
-    # team_kills = team_kills - suicide
-    # total_kills = total_kills - suicide - team_kills
+    df2 = pd.DataFrame(events)
 
-    df2 = pd.DataFrame(events, dtype=str)
+    return dash_table.DataTable(data=df2.to_dict("records"),
+                                columns=[{"name": i, "id": i} for i in df2.columns],
+                                page_size=20,
+                                sort_action="native",
+                                sort_by=[{"column_id": "kills", "direction": "desc"}],
+                                page_action="native"
+                                )
 
-    return dash_table.DataTable(data=df2.to_dict("records"), columns=[{"name": i, "id": i} for i in df2.columns], page_size=20)
+
+@app.callback(
+    Output(f"output4", "children"),
+    Input(f"match_dropdown", "value"),
+)
+def update_vehicle_deaths_by_weapon(match_id):
+    events = service.get_vehicle_deaths_by_weapon(match_id)
+    for row in events:
+        row['deaths'] -= row['team_deaths']
+        row['team_deaths'] -= row['suicides']
+
+    df2 = pd.DataFrame(events)
+
+    return dash_table.DataTable(data=df2.to_dict("records"),
+                                columns=[{"name": i, "id": i} for i in df2.columns],
+                                page_size=20,
+                                sort_action="native",
+                                sort_by=[{"column_id": "deaths", "direction": "desc"}],
+                                page_action="native")
