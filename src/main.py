@@ -39,8 +39,6 @@ db.connect_mysql(config.DB_HOST(),
                  config.DB_DATABASE())
 
 service = Service(db)
-events = service.get_kill_events(1660173742)
-df2 = pd.DataFrame(events, dtype=str)
 
 div = html.Div(children=[
     html.H1(children="PS2 Outfit Wars Stats"),
@@ -49,7 +47,7 @@ div = html.Div(children=[
 
     html.Div(id="output2"),
 
-    # dash_table.DataTable(data=df2.to_dict("records"), columns=[{"name": i, "id": i} for i in df2.columns])
+    html.Div(id="output3"),
 ])
 
 grid = dui.Grid(_id=f"grid", num_rows=2, num_cols=1, grid_padding=5)
@@ -191,3 +189,22 @@ def update_infantry_stats(match_id):
         config=conf
     )
     return [graph]
+
+
+@app.callback(
+    Output(f"output3", "children"),
+    Input(f"match_dropdown", "value"),
+)
+def update_kills_by_weapon(match_id):
+    events = service.get_kills_by_weapon(match_id)
+    for row in events:
+        row['kills'] -= row['team_kills']
+        row['team_kills'] -= row['suicides']
+
+    # TODO calculate real total kills and real team kills
+    # team_kills = team_kills - suicide
+    # total_kills = total_kills - suicide - team_kills
+
+    df2 = pd.DataFrame(events, dtype=str)
+
+    return dash_table.DataTable(data=df2.to_dict("records"), columns=[{"name": i, "id": i} for i in df2.columns], page_size=20)

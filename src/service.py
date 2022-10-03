@@ -37,48 +37,25 @@ class Service:
               "GROUP BY outfit.alias, e.experience_id, xp.description"
         return self.db.query(sql, [match_id])
 
-    def get_kill_events(self, match_id):
-        sql = "SELECT COUNT(1) AS num, SUM(is_headshot) AS num_headshot, attacker_faction.alias AS attacker_faction, defender_faction.alias AS defender_faction " \
+    def get_kills_by_weapon(self, match_id):
+        sql = "SELECT COALESCE(w.name, IF(e.attacker_weapon_id = 0, 'Ram/Roadkill/Fall', e.attacker_weapon_id)) AS weapon, " \
+              "attacker_vehicle_info.name AS vehicle_name, " \
+              "attacker_outfit.alias AS attacker_outfit, " \
+              "COUNT(1) AS kills, " \
+              "SUM(e.is_headshot) AS num_headshot, " \
+              "SUM(IF(defender_outfit.alias = attacker_outfit.alias, 1, 0)) AS team_kills, " \
+              "SUM(IF(e.character_id = e.attacker_character_id, 1, 0)) AS suicides " \
               "FROM death_event e " \
-              "LEFT JOIN zone_info ON e.zone_id = zone_info.zone_id " \
-              "LEFT JOIN loadout_info attacker ON e.attacker_loadout_id = attacker.loadout_id " \
-              "LEFT JOIN faction_info attacker_faction ON attacker.faction_id = attacker_faction.faction_id " \
-              "LEFT JOIN loadout_info defender ON e.character_loadout_id = defender.loadout_id " \
-              "LEFT JOIN faction_info defender_faction ON defender.faction_id = defender_faction.faction_id " \
+              "LEFT JOIN weapon_info w ON e.attacker_weapon_id = w.item_id " \
+              "LEFT JOIN character_info defender ON e.character_id = defender.character_id " \
+              "LEFT JOIN outfit_info defender_outfit ON defender.outfit_id = defender_outfit.outfit_id " \
+              "LEFT JOIN character_info attacker ON e.attacker_character_id = attacker.character_id " \
+              "LEFT JOIN outfit_info attacker_outfit ON attacker.outfit_id = attacker_outfit.outfit_id " \
+              "LEFT JOIN vehicle_info attacker_vehicle_info ON e.attacker_vehicle_id = attacker_vehicle_info.vehicle_id " \
               "WHERE e.match_id = ? " \
-              "GROUP BY attacker_faction.alias, defender_faction.alias"
+              "GROUP BY e.attacker_weapon_id, attacker_outfit.alias, attacker_vehicle_info.name, w.name " \
+              "ORDER BY kills DESC"
         return self.db.query(sql, [match_id])
-
-    def get_zone_info(self):
-        return self.db.query("SELECT zone_id, name FROM zone_info")
-
-    def get_resist_type_list(self, version_id):
-        return db.query("SELECT damage_type_id, name FROM damage_type WHERE version_id = ? ORDER BY damage_type_id ASC", [version_id])
-
-    def get(self, version_id, resist_type_id):
-        sql = """
-            SELECT weapon_id, name, max_damage, min_damage, indirect_damage, damage_type_id, indirect_damage_type_id, is_flak 
-            FROM weapon
-            WHERE version_id = ?
-            AND (damage_type_id = ? OR indirect_damage_type_id = ?)
-            ORDER BY name ASC
-        """
-
-        return self.db.query(sql, [version_id, resist_type_id, resist_type_id])
-
-    def get_version_list(self):
-        return self.db.query("SELECT id, name FROM version ORDER BY order ASC")
-
-    def get_weapon_list(self):
-        return self.db.query("SELECT DISTINCT weapon_id, name FROM weapon ORDER BY weapon_id ASC")
-
-    def get_target_list(self):
-        return self.db.query("SELECT DISTINCT t.target_id, t.name FROM target t "
-                        "JOIN damage_resistance r ON (t.target_id = r.target_id AND t.version_id = r.version_id) "
-                        "ORDER BY t.target_id ASC")
-
-    def get_direction_list(self):
-        return self.db.query("SELECT id, name FROM attack_direction ORDER BY id")
 
     def get_damage(self, version, weapons, targets, directions):
         if not weapons:
