@@ -201,7 +201,7 @@ def update_kills_by_weapon(match_id):
     df2 = pd.DataFrame(events)
 
     return [
-        html.H1("Vehicle Kills By Weapon"),
+        html.H1("Infantry Kills By Weapon"),
         dash_table.DataTable(data=df2.to_dict("records"),
                              columns=[{"name": i, "id": i} for i in df2.columns],
                              page_size=20,
