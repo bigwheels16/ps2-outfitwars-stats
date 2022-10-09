@@ -107,8 +107,6 @@ def update_vehicle_kills(world_id, match_id, character_id):
     if not world_id or not match_id:
         return []
 
-    print(world_id, match_id, character_id)
-
     col1 = "Vehicles Lost"
     col2 = "Kills"
     col3 = "Attacker"
