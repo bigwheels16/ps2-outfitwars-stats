@@ -62,9 +62,11 @@ controlpanel.create_group(
 )
 
 world_dropdown = components.create_dropdown(f"world", "World", util.format_for_dropdown("name", "world_id", service.get_world_list()), "1", multi=False)
-version_dropdown = components.create_dropdown(f"match", "Match", list(), None, multi=False)
+match_dropdown = components.create_dropdown(f"match", "Match", list(), None, multi=False)
+player_dropdown = components.create_dropdown(f"player", "Player", list(), None, multi=False)
 controlpanel.add_element(world_dropdown, "Options")
-controlpanel.add_element(version_dropdown, "Options")
+controlpanel.add_element(match_dropdown, "Options")
+controlpanel.add_element(player_dropdown, "Options")
 
 app.layout = dui.Layout(
     grid=grid,
@@ -77,22 +79,38 @@ app.layout = dui.Layout(
     Input(f"world_dropdown", "value"),
 )
 def update_match_list(world_id):
-    return list(map(lambda x: {"label": f"{x['match_id']}", "value": x["match_id"]}, reversed(service.get_match_list(world_id))))
+    if not world_id:
+        return []
+
+    return list(map(lambda x: {"label": x['match_id'], "value": x["match_id"]}, reversed(service.get_match_list(world_id))))
+
+
+@app.callback(
+    Output(f"player_dropdown", "options"),
+    Input(f"world_dropdown", "value"),
+    Input(f"match_dropdown", "value"),
+)
+def update_player_list(world_id, match_id):
+    if not world_id or not match_id:
+        return []
+
+    return list(map(lambda x: {"label": "[%s] %s" % (x["outfit"], x["name"]), "value": x['character_id']}, service.get_player_list(world_id, match_id)))
 
 
 @app.callback(
     Output(f"output1", "children"),
+    Input(f"world_dropdown", "value"),
     Input(f"match_dropdown", "value"),
 )
-def update_vehicle_kills(match_id):
-    if not match_id:
+def update_vehicle_kills(world_id, match_id):
+    if not world_id or not match_id:
         return []
 
     col1 = "Vehicles Lost"
     col2 = "Kills"
     col3 = "Attacker"
 
-    results = service.get_vehicle_kills(match_id)
+    results = service.get_vehicle_kills(world_id, match_id)
     # print(vehicles_killed_list)
 
     def get_attacker(r):
@@ -140,17 +158,18 @@ def update_vehicle_kills(match_id):
 
 @app.callback(
     Output(f"output2", "children"),
+    Input(f"world_dropdown", "value"),
     Input(f"match_dropdown", "value"),
 )
-def update_infantry_stats(match_id):
-    if not match_id:
+def update_infantry_stats(world_id, match_id):
+    if not world_id or not match_id:
         return []
 
     col1 = "Action"
     col2 = "Count"
     col3 = "Outfit"
 
-    results = service.get_infantry_stats(match_id)
+    results = service.get_infantry_stats(world_id, match_id)
 
     # print(vehicles_killed_list)
 
@@ -187,13 +206,14 @@ def update_infantry_stats(match_id):
 
 @app.callback(
     Output(f"output3", "children"),
+    Input(f"world_dropdown", "value"),
     Input(f"match_dropdown", "value"),
 )
-def update_kills_by_weapon(match_id):
-    if not match_id:
+def update_kills_by_weapon(world_id, match_id):
+    if not world_id or not match_id:
         return []
 
-    events = service.get_kills_by_weapon(match_id)
+    events = service.get_kills_by_weapon(world_id, match_id)
     for row in events:
         row['kills'] -= row['team_kills']
         row['team_kills'] -= row['suicides']
@@ -213,13 +233,14 @@ def update_kills_by_weapon(match_id):
 
 @app.callback(
     Output(f"output4", "children"),
+    Input(f"world_dropdown", "value"),
     Input(f"match_dropdown", "value"),
 )
-def update_vehicle_deaths_by_weapon(match_id):
-    if not match_id:
+def update_vehicle_deaths_by_weapon(world_id, match_id):
+    if not world_id or not match_id:
         return []
 
-    events = service.get_vehicle_deaths_by_weapon(match_id)
+    events = service.get_vehicle_deaths_by_weapon(world_id, match_id)
     for row in events:
         row['deaths'] -= row['team_deaths']
         row['team_deaths'] -= row['suicides']
