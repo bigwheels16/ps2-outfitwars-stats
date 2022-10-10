@@ -105,7 +105,7 @@ class Service:
               "LEFT JOIN outfit_info defender_outfit ON defender.outfit_id = defender_outfit.outfit_id " \
               "LEFT JOIN character_info attacker ON e.attacker_character_id = attacker.character_id " \
               "LEFT JOIN outfit_info attacker_outfit ON attacker.outfit_id = attacker_outfit.outfit_id " \
-              "LEFT JOIN vehicle_info defender_vehicle_info ON e.character_vehicle_id = defender_vehicle_info.vehicle_id " \
+              "JOIN vehicle_info defender_vehicle_info ON e.character_vehicle_id = defender_vehicle_info.vehicle_id " \
               "WHERE e.world_id = ? AND e.match_id = ? "
 
         if character_id:

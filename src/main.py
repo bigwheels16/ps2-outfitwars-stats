@@ -74,6 +74,25 @@ app.layout = dui.Layout(
 )
 
 
+colors = [
+    ["#1e487b", "#3278cd", "#84aee1"],
+    ["#961c03", "#fb2f04", "#fc8269"]
+]
+
+
+def get_attacker(r):
+    if r['attacker_outfit'] is None:
+        return "Unknown"
+
+    category = "Opponent"
+    if r['is_suicide'] == 1:
+        category = "Suicide"
+    elif r['attacker_outfit'] == r['defender_outfit']:
+        category = "Team Kill"
+
+    return "[%s] %s" % (r['attacker_outfit'], category)
+
+
 @app.callback(
     Output(f"match_dropdown", "options"),
     Input(f"world_dropdown", "value"),
@@ -114,25 +133,28 @@ def update_vehicle_kills(world_id, match_id, character_id):
     results = service.get_vehicle_kills(world_id, match_id, character_id)
     # print(vehicles_killed_list)
 
-    def get_attacker(r):
-        if r['is_suicide'] == 1:
-            return "Suicide"
-        elif r['attacker_outfit'] is None:
-            return "Unknown"
-        elif r['attacker_outfit'] == r['defender_outfit']:
-            return "Team Kill"
-        else:
-            return "Opponent"
-
     col1_values = []
     col2_values = []
     col3_values = []
+    outfits = set()
     for row in results:
         vehicle_name = "%s %s" % (row['vehicle_category'], row['vehicle_name']) if row['vehicle_category'] else row['vehicle_name']
 
         col2_values.append(row["num"])
         col1_values.append(f"{vehicle_name} [{row['defender_outfit']}]")
         col3_values.append(get_attacker(row))
+        if row["attacker_outfit"]:
+            outfits.add(row["attacker_outfit"])
+
+    color_map = {}
+    for j, category in enumerate(["Opponent", "Team Kill", "Suicide"]):
+        for i, outfit in enumerate(sorted(outfits)):
+            if len(colors) > i and len(colors[i]) > j:
+                color_map["[%s] %s" % (outfit, category)] = colors[i][j]
+    color_map["Unknown"] = "black"
+
+    #print(color_map)
+    #print(color_map.keys())
 
     # assume you have a "long-form" data frame
     # see https://plotly.com/python/px-arguments/ for more options
@@ -143,10 +165,10 @@ def update_vehicle_kills(world_id, match_id, character_id):
     })
 
     fig = px.bar(df, x=col2, y=col1, color=col3, barmode="relative", height=800, title="Vehicles Lost by Team",
-                 color_discrete_map={"Opponent": "red", "Team Kill": "blue", "Suicide": "orange", "Unknown": "green"},
+                 color_discrete_map=color_map,
                  category_orders={
                      col1: sorted(set(df[col1].values)),
-                     col3: ["Opponent", "Team Kill", "Suicide", "Unknown"]})
+                     col3: color_map.keys()})
 
     conf = dict({"autosizable": True, "sendData": True, "displayModeBar": True, "modeBarButtonsToRemove": ['zoom', 'pan']})
     graph = dcc.Graph(
@@ -181,7 +203,13 @@ def update_infantry_stats(world_id, match_id, character_id):
     for row in results:
         col2_values.append(row["num"])
         col1_values.append(f"{row['action']} [{row['outfit']}]")
-        col3_values.append(row["outfit"])
+        col3_values.append(f"[{row['outfit']}]")
+
+    color_map = {}
+    for i, outfit in enumerate(sorted(set(col3_values))):
+        if len(colors) > i:
+            color_map[outfit] = colors[i][0]
+    color_map["Unknown"] = "black"
 
     # assume you have a "long-form" data frame
     # see https://plotly.com/python/px-arguments/ for more options
@@ -192,6 +220,7 @@ def update_infantry_stats(world_id, match_id, character_id):
     })
 
     fig = px.bar(df, x=col2, y=col1, color=col3, barmode="relative", height=800, title="Infantry Stats",
+                 color_discrete_map=color_map,
                  category_orders={
                      col1: sorted(set(df[col1].values))
                  })
