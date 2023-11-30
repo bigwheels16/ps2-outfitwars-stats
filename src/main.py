@@ -5,7 +5,8 @@ from service import Service
 import util
 import components
 import dash_ui as dui
-import config, db
+import config
+from db import DB
 
 
 external_stylesheets = [
@@ -31,12 +32,15 @@ app = Dash(__name__,
            assets_folder="../assets",
            external_stylesheets=external_stylesheets)
 
-db = db.DB()
-db.connect_mysql(config.DB_HOST(),
-                 config.DB_PORT(),
-                 config.DB_USERNAME(),
-                 config.DB_PASSWORD(),
-                 config.DB_DATABASE())
+db = DB()
+db.connect(
+    config.DB_DRIVERNAME(),
+    config.DB_USERNAME(),
+    config.DB_PASSWORD(),
+    config.DB_NAME(),
+    config.DB_HOST(),
+    config.DB_IP_TYPE())
+
 
 service = Service(db)
 
