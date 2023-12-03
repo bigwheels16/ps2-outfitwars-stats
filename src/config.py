@@ -15,10 +15,6 @@ def get_env_string(name, default=None):
     return os.environ.get(name, default)
 
 
-def BASE_URL_PATH():
-    return get_env_string("BASE_URL_PATH")
-
-
 def DB_DRIVERNAME():
     return get_env_string("DB_DRIVERNAME")
 
