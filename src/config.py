@@ -41,7 +41,3 @@ def DB_HOST():
 
 def DB_IP_TYPE():
     return get_env_string("DB_IP_TYPE").upper()
-
-
-def IS_DEV():
-    return get_env_bool("IS_DEV", False)

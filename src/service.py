@@ -1,3 +1,6 @@
+MATCH_ID_FIELD = "zone_id"
+
+
 class Service:
     def __init__(self, db):
         self.db = db
@@ -7,7 +10,7 @@ class Service:
         return self.db.query(sql)
 
     def get_match_list(self, world_id):
-        sql = "SELECT DISTINCT match_id FROM death_event WHERE world_id = :world_id AND match_id != 0"
+        sql = f"SELECT DISTINCT {MATCH_ID_FIELD} AS match_id FROM death_event WHERE world_id = :world_id AND {MATCH_ID_FIELD} != 0"
         return self.db.query(sql, {"world_id": world_id})
 
     def get_character_list(self, world_id, match_id):
@@ -15,7 +18,7 @@ class Service:
               "FROM death_event e " \
               "LEFT JOIN character_info c ON e.character_id = c.character_id " \
               "LEFT JOIN outfit_info o ON c.outfit_id = o.outfit_id " \
-              "WHERE e.world_id = :world_id AND e.match_id = :match_id " \
+              f"WHERE e.world_id = :world_id AND e.{MATCH_ID_FIELD} = :match_id " \
               "ORDER BY outfit, c.name"
         return self.db.query(sql, {"world_id": world_id, "match_id": match_id})
 
@@ -32,7 +35,7 @@ class Service:
               "LEFT JOIN character_info attacker ON e.attacker_character_id = attacker.character_id " \
               "LEFT JOIN outfit_info attacker_outfit ON attacker.outfit_id = attacker_outfit.outfit_id " \
               "JOIN vehicle_info defender_vehicle_info ON e.character_vehicle_id = defender_vehicle_info.vehicle_id " \
-              "WHERE e.world_id = :world_id AND e.match_id = :match_id "
+              f"WHERE e.world_id = :world_id AND e.{MATCH_ID_FIELD} = :match_id "
 
         if character_id:
             sql += " AND (e.character_id = :character_id OR e.attacker_character_id = :character_id) "
@@ -51,7 +54,7 @@ class Service:
               "LEFT JOIN character_info c ON e.character_id = c.character_id " \
               "LEFT JOIN outfit_info outfit ON c.outfit_id = outfit.outfit_id " \
               "LEFT JOIN experience_info xp ON e.experience_id = xp.experience_id " \
-              "WHERE e.world_id = :world_id AND e.match_id = :match_id AND e.experience_id IN (1, 2, 3, 4, 5, 6, 7, 37, 51, 53, 56, 30, 142, 201, 233, 277, 335, 355, 592) "
+              f"WHERE e.world_id = :world_id AND e.{MATCH_ID_FIELD} = :match_id AND e.experience_id IN (1, 2, 3, 4, 5, 6, 7, 37, 51, 53, 56, 30, 142, 201, 233, 277, 335, 355, 592) "
 
         if character_id:
             sql += " AND e.character_id = :character_id "
@@ -78,7 +81,7 @@ class Service:
               "LEFT JOIN character_info attacker ON e.attacker_character_id = attacker.character_id " \
               "LEFT JOIN outfit_info attacker_outfit ON attacker.outfit_id = attacker_outfit.outfit_id " \
               "LEFT JOIN vehicle_info attacker_vehicle_info ON e.attacker_vehicle_id = attacker_vehicle_info.vehicle_id " \
-              "WHERE e.world_id = :world_id AND e.match_id = :match_id "
+              f"WHERE e.world_id = :world_id AND e.{MATCH_ID_FIELD} = :match_id "
 
         if character_id:
             sql += " AND (e.character_id = ? OR e.attacker_character_id = ?) "
@@ -104,7 +107,7 @@ class Service:
               "LEFT JOIN character_info attacker ON e.attacker_character_id = attacker.character_id " \
               "LEFT JOIN outfit_info attacker_outfit ON attacker.outfit_id = attacker_outfit.outfit_id " \
               "JOIN vehicle_info defender_vehicle_info ON e.character_vehicle_id = defender_vehicle_info.vehicle_id " \
-              "WHERE e.world_id = :world_id AND e.match_id = :match_id "
+              f"WHERE e.world_id = :world_id AND e.{MATCH_ID_FIELD} = :match_id "
 
         if character_id:
             sql += " AND (e.character_id = :character_id OR e.attacker_character_id = :character_id) "
