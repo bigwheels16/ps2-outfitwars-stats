@@ -250,10 +250,13 @@ def update_kills_by_weapon(world_id, match_id, character_id):
     if not world_id or not match_id:
         return []
 
-    events = service.get_kills_by_weapon(world_id, match_id, character_id)
-    for row in events:
-        row['kills'] -= row['team_kills']
-        row['team_kills'] -= row['suicides']
+    rows = service.get_kills_by_weapon(world_id, match_id, character_id)
+    events = []
+    for row in rows:
+        d = row._asdict()
+        d['kills'] -= d['team_kills']
+        d['team_kills'] -= d['suicides']
+        events.append(d)
 
     df2 = pd.DataFrame(events)
 
