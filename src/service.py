@@ -9,7 +9,8 @@ class Service:
     def get_match_list(self, world_id):
         sql = """
             SELECT
-                COALESCE(m.match_id, e.zone_id) AS match_id
+                m.match_id,
+                e.zone_id
             FROM
                 death_event e
                 LEFT JOIN matches m ON e.zone_id = m.zone_id
@@ -20,7 +21,9 @@ class Service:
                 e.zone_id,
                 m.match_id
             ORDER BY
-                m.match_id
+                m.match_id is null,
+                m.match_id desc,
+                e.zone_id asc
         """
         return self.db.query(sql, {"world_id": world_id})
 
