@@ -129,7 +129,7 @@ class Service:
         """
 
         if character_id:
-            sql += " AND (e.character_id = ? OR e.attacker_character_id = ?) "
+            sql += " AND (e.character_id = :character_id OR e.attacker_character_id = :character_id) "
             params["character_id"] = character_id
 
         sql += "GROUP BY e.attacker_weapon_id, attacker_outfit.alias, attacker_vehicle_info.name, w.name "
