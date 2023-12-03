@@ -94,7 +94,7 @@ class Service:
     def get_vehicle_deaths_by_weapon(self, world_id, match_id, character_id):
         params = {"world_id": world_id, "match_id": match_id}
 
-        sql = "SELECT COALESCE(w.name, CASE WHEN e.attacker_weapon_id = 0 THEN 'Ram/Roadkill/Fall' ELSE e.attacker_weapon_id::varchar END)) AS weapon, " \
+        sql = "SELECT COALESCE(w.name, CASE WHEN e.attacker_weapon_id = 0 THEN 'Ram/Roadkill/Fall' ELSE e.attacker_weapon_id::varchar END) AS weapon, " \
               "defender_vehicle_info.name AS vehicle_name, " \
               "defender_outfit.alias AS defender_outfit, " \
               "COUNT(1) AS deaths, " \
