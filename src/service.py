@@ -72,8 +72,8 @@ class Service:
               "attacker_outfit.alias AS attacker_outfit, " \
               "COUNT(1) AS kills, " \
               "SUM(e.is_headshot) AS num_headshot, " \
-              "SUM(CASE WHEN defender_outfit.alias = attacker_outfit.alias THEN 1 ELSE 0 END)) AS team_kills, " \
-              "SUM(CASE WHEN e.character_id = e.attacker_character_id THEN 1 ELSE 0 END)) AS suicides " \
+              "SUM(CASE WHEN defender_outfit.alias = attacker_outfit.alias THEN 1 ELSE 0 END) AS team_kills, " \
+              "SUM(CASE WHEN e.character_id = e.attacker_character_id THEN 1 ELSE 0 END) AS suicides " \
               "FROM death_event e " \
               "LEFT JOIN weapon_info w ON e.attacker_weapon_id = w.item_id " \
               "LEFT JOIN character_info defender ON e.character_id = defender.character_id " \
@@ -98,8 +98,8 @@ class Service:
               "defender_vehicle_info.name AS vehicle_name, " \
               "defender_outfit.alias AS defender_outfit, " \
               "COUNT(1) AS deaths, " \
-              "SUM(CASE WHEN defender_outfit.alias = attacker_outfit.alias THEN 1 ELSE 0 END)) AS team_deaths, " \
-              "SUM(CASE WHEN e.character_id = e.attacker_character_id THEN 1 ELSE 0 END)) AS suicides " \
+              "SUM(CASE WHEN defender_outfit.alias = attacker_outfit.alias THEN 1 ELSE 0 END) AS team_deaths, " \
+              "SUM(CASE WHEN e.character_id = e.attacker_character_id THEN 1 ELSE 0 END) AS suicides " \
               "FROM vehicle_destroy_event e " \
               "LEFT JOIN weapon_info w ON e.attacker_weapon_id = w.item_id " \
               "LEFT JOIN character_info defender ON e.character_id = defender.character_id " \
