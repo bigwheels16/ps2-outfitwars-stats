@@ -41,7 +41,7 @@ class Service:
                 e.world_id = :world_id
                 AND (e.zone_id = :match_id OR m.match_id = :match_id)
             ORDER BY
-                outfit, c.name
+                outfit, name
         """
 
         return self.db.query(sql, {"world_id": world_id, "match_id": match_id})
