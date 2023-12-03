@@ -281,10 +281,13 @@ def update_vehicle_deaths_by_weapon(world_id, match_id, character_id):
     if not world_id or not match_id:
         return []
 
-    events = service.get_vehicle_deaths_by_weapon(world_id, match_id, character_id)
-    for row in events:
-        row['deaths'] -= row['team_deaths']
-        row['team_deaths'] -= row['suicides']
+    rows = service.get_vehicle_deaths_by_weapon(world_id, match_id, character_id)
+    events = []
+    for row in rows:
+        d = { k: v for k, v in row.items() }
+        d['deaths'] -= d['team_deaths']
+        d['team_deaths'] -= d['suicides']
+        events.append(d)
 
     df2 = pd.DataFrame(events)
 
