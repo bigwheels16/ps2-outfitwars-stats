@@ -30,7 +30,8 @@ app = Dash(__name__,
            title="PS2 Outfit Wars Stats",
            server=True,
            assets_folder="../assets",
-           external_stylesheets=external_stylesheets)
+           external_stylesheets=external_stylesheets,
+           url_base_pathname="/")
 
 db = DB()
 db.connect(
