@@ -253,7 +253,7 @@ def update_kills_by_weapon(world_id, match_id, character_id):
     rows = service.get_kills_by_weapon(world_id, match_id, character_id)
     events = []
     for row in rows:
-        d = row._asdict()
+        d = { k: v for k, v in row.items() }
         d['kills'] -= d['team_kills']
         d['team_kills'] -= d['suicides']
         events.append(d)
