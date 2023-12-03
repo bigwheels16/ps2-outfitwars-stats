@@ -14,7 +14,7 @@ class Service:
         return self.db.query(sql, {"world_id": world_id})
 
     def get_character_list(self, world_id, match_id):
-        sql = "SELECT DISTINCT COALESCE(o.alias, o.name, o.outfit_id) AS outfit, c.name, c.character_id " \
+        sql = "SELECT DISTINCT COALESCE(o.alias, o.name, o.outfit_id::varchar) AS outfit, c.name, c.character_id " \
               "FROM death_event e " \
               "LEFT JOIN character_info c ON e.character_id = c.character_id " \
               "LEFT JOIN outfit_info o ON c.outfit_id = o.outfit_id " \
@@ -67,7 +67,7 @@ class Service:
     def get_kills_by_weapon(self, world_id, match_id, character_id):
         params = {"world_id": world_id, "match_id": match_id}
 
-        sql = "SELECT COALESCE(w.name, CASE WHEN e.attacker_weapon_id = 0 THEN 'Ram/Roadkill/Fall' ELSE e.attacker_weapon_id END)) AS weapon, " \
+        sql = "SELECT COALESCE(w.name, CASE WHEN e.attacker_weapon_id = 0 THEN 'Ram/Roadkill/Fall' ELSE e.attacker_weapon_id::varchar END) AS weapon, " \
               "attacker_vehicle_info.name AS vehicle_name, " \
               "attacker_outfit.alias AS attacker_outfit, " \
               "COUNT(1) AS kills, " \
@@ -94,7 +94,7 @@ class Service:
     def get_vehicle_deaths_by_weapon(self, world_id, match_id, character_id):
         params = {"world_id": world_id, "match_id": match_id}
 
-        sql = "SELECT COALESCE(w.name, CASE WHEN e.attacker_weapon_id = 0 THEN 'Ram/Roadkill/Fall' ELSE e.attacker_weapon_id END)) AS weapon, " \
+        sql = "SELECT COALESCE(w.name, CASE WHEN e.attacker_weapon_id = 0 THEN 'Ram/Roadkill/Fall' ELSE e.attacker_weapon_id::varchar END)) AS weapon, " \
               "defender_vehicle_info.name AS vehicle_name, " \
               "defender_outfit.alias AS defender_outfit, " \
               "COUNT(1) AS deaths, " \
