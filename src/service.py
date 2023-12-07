@@ -23,8 +23,8 @@ class Service:
     def get_character_list(self, world_id, zone_id):
         sql = """
             SELECT
-                DISTINCT COALESCE(o.alias, o.name, o.outfit_id::varchar) AS outfit,
-                COALESCE(c.name, c.character_id::varchar) AS name,
+                DISTINCT COALESCE(o.alias, o.name, c.outfit_id::varchar) AS outfit,
+                COALESCE(c.name, e.character_id::varchar) AS name,
                 c.character_id
             FROM death_event e
                 LEFT JOIN character_info c ON e.character_id = c.character_id
@@ -44,8 +44,8 @@ class Service:
         sql = """
             SELECT
                 COUNT(1) AS num,
-                attacker_outfit.alias AS attacker_outfit,
-                defender_outfit.alias AS defender_outfit,
+                COALESCE(attacker_outfit.alias, attacker.outfit_id::varchar) AS attacker_outfit,
+                COALESCE(defender_outfit.alias, defender.outfit_id::varchar) AS defender_outfit,
                 defender_vehicle_info.name AS vehicle_name,
                 defender_vehicle_info.vehicle_id AS vehicle_id,
                 defender_vehicle_info.category AS vehicle_category,
@@ -74,7 +74,11 @@ class Service:
         params = {"world_id": world_id, "zone_id": zone_id}
 
         sql = """
-            SELECT COUNT(1) AS num, outfit.alias AS outfit, e.experience_id, xp.description AS action
+            SELECT
+                COUNT(1) AS num,
+                COALESCE(outfit.alias, c.outfit_id::varchar) AS outfit,
+                e.experience_id,
+                xp.description AS action
             FROM gain_experience_event e
                 LEFT JOIN character_info c ON e.character_id = c.character_id
                 LEFT JOIN outfit_info outfit ON c.outfit_id = outfit.outfit_id
@@ -100,7 +104,7 @@ class Service:
             SELECT
                 COALESCE(w.name, CASE WHEN e.attacker_weapon_id = 0 THEN 'Ram/Roadkill/Fall' ELSE e.attacker_weapon_id::varchar END) AS weapon,
                 attacker_vehicle_info.name AS vehicle_name,
-                attacker_outfit.alias AS attacker_outfit,
+                COALESCE(attacker_outfit.alias, attacker.outfit_id::varchar) AS attacker_outfit,
                 COUNT(1) AS kills,
                 SUM(e.is_headshot) AS num_headshot,
                 SUM(CASE WHEN defender_outfit.alias = attacker_outfit.alias THEN 1 ELSE 0 END) AS team_kills,
@@ -132,7 +136,7 @@ class Service:
             SELECT
                 COALESCE(w.name, CASE WHEN e.attacker_weapon_id = 0 THEN 'Ram/Roadkill/Fall' ELSE e.attacker_weapon_id::varchar END) AS weapon,
                 defender_vehicle_info.name AS vehicle_name,
-                defender_outfit.alias AS defender_outfit,
+                COALESCE(defender_outfit.alias, defender.outfit_id::varchar) AS defender_outfit,
                 COUNT(1) AS deaths,
                 SUM(CASE WHEN defender_outfit.alias = attacker_outfit.alias THEN 1 ELSE 0 END) AS team_deaths,
                 SUM(CASE WHEN e.character_id = e.attacker_character_id THEN 1 ELSE 0 END) AS suicides
