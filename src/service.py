@@ -65,9 +65,20 @@ class Service:
             sql += " AND (e.character_id = :character_id OR e.attacker_character_id = :character_id) "
             params["character_id"] = character_id
 
-        sql += "GROUP BY attacker_outfit.alias, defender_outfit.alias, defender_vehicle_info.name, " \
-               "defender_vehicle_info.vehicle_id, defender_vehicle_info.category, is_suicide " \
-               "ORDER BY vehicle_name DESC"
+        sql += """
+            GROUP BY
+                attacker.outfit_id,
+                defender.outfit_id,
+                attacker_outfit.alias,
+                defender_outfit.alias,
+                defender_vehicle_info.name,
+                defender_vehicle_info.vehicle_id,
+                defender_vehicle_info.category,
+                is_suicide
+            ORDER BY
+                vehicle_name DESC
+        """
+
         return self.db.query(sql, params)
 
     def get_infantry_stats(self, world_id, zone_id, character_id):
@@ -93,7 +104,7 @@ class Service:
             sql += " AND e.character_id = :character_id "
             params["character_id"] = character_id
 
-        sql += "GROUP BY outfit.alias, e.experience_id, xp.description"
+        sql += "GROUP BY c.outfit_id, outfit.alias, e.experience_id, xp.description"
 
         return self.db.query(sql, params)
 
@@ -125,7 +136,14 @@ class Service:
             sql += " AND (e.character_id = :character_id OR e.attacker_character_id = :character_id) "
             params["character_id"] = character_id
 
-        sql += "GROUP BY e.attacker_weapon_id, attacker_outfit.alias, attacker_vehicle_info.name, w.name "
+        sql += """
+            GROUP BY
+                attacker.outfit_id
+                e.attacker_weapon_id,
+                attacker_outfit.alias,
+                attacker_vehicle_info.name,
+                w.name
+        """
 
         return self.db.query(sql, params)
 
@@ -156,6 +174,13 @@ class Service:
             sql += " AND (e.character_id = :character_id OR e.attacker_character_id = :character_id) "
             params["character_id"] = character_id
 
-        sql += "GROUP BY e.attacker_weapon_id, defender_outfit.alias, defender_vehicle_info.name, w.name "
+        sql += """
+            GROUP BY
+                defender.outfit_id,
+                e.attacker_weapon_id,
+                defender_outfit.alias,
+                defender_vehicle_info.name,
+                w.name
+        """
 
         return self.db.query(sql, params)
