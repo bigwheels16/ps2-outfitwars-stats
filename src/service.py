@@ -18,6 +18,7 @@ class Service:
             ORDER BY
                 e.zone_id asc
         """
+
         return self.db.query(sql, {"world_id": world_id})
 
     def get_character_list(self, world_id, zone_id):
@@ -104,7 +105,13 @@ class Service:
             sql += " AND e.character_id = :character_id "
             params["character_id"] = character_id
 
-        sql += "GROUP BY c.outfit_id, outfit.alias, e.experience_id, xp.description"
+        sql += """
+            GROUP BY
+                c.outfit_id,
+                outfit.alias,
+                e.experience_id,
+                xp.description
+        """
 
         return self.db.query(sql, params)
 
@@ -138,7 +145,7 @@ class Service:
 
         sql += """
             GROUP BY
-                attacker.outfit_id
+                attacker.outfit_id,
                 e.attacker_weapon_id,
                 attacker_outfit.alias,
                 attacker_vehicle_info.name,
