@@ -114,11 +114,11 @@ def update_match_list(world_id):
     Input(f"world_dropdown", "value"),
     Input(f"match_dropdown", "value"),
 )
-def update_character_list(world_id, match_id):
-    if not world_id or not match_id:
+def update_character_list(world_id, zone_id):
+    if not world_id or not zone_id:
         return []
 
-    return list(map(lambda x: {"label": "[%s] %s" % (x["outfit"], x["name"]), "value": f"{x['character_id']}"}, service.get_character_list(world_id, match_id)))
+    return list(map(lambda x: {"label": "[%s] %s" % (x["outfit"], x["name"]), "value": f"{x['character_id']}"}, service.get_character_list(world_id, zone_id)))
 
 
 @app.callback(
@@ -127,15 +127,15 @@ def update_character_list(world_id, match_id):
     Input(f"match_dropdown", "value"),
     Input(f"character_dropdown", "value"),
 )
-def update_vehicle_kills(world_id, match_id, character_id):
-    if not world_id or not match_id:
+def update_vehicle_kills(world_id, zone_id, character_id):
+    if not world_id or not zone_id:
         return []
 
     col1 = "Vehicles Lost"
     col2 = "Kills"
     col3 = "Attacker"
 
-    results = service.get_vehicle_kills(world_id, match_id, character_id)
+    results = service.get_vehicle_kills(world_id, zone_id, character_id)
     # print(vehicles_killed_list)
 
     col1_values = []
@@ -190,15 +190,15 @@ def update_vehicle_kills(world_id, match_id, character_id):
     Input(f"match_dropdown", "value"),
     Input(f"character_dropdown", "value"),
 )
-def update_infantry_stats(world_id, match_id, character_id):
-    if not world_id or not match_id:
+def update_infantry_stats(world_id, zone_id, character_id):
+    if not world_id or not zone_id:
         return []
 
     col1 = "Action"
     col2 = "Count"
     col3 = "Outfit"
 
-    results = service.get_infantry_stats(world_id, match_id, character_id)
+    results = service.get_infantry_stats(world_id, zone_id, character_id)
 
     # print(vehicles_killed_list)
 
@@ -246,11 +246,11 @@ def update_infantry_stats(world_id, match_id, character_id):
     Input(f"match_dropdown", "value"),
     Input(f"character_dropdown", "value"),
 )
-def update_kills_by_weapon(world_id, match_id, character_id):
-    if not world_id or not match_id:
+def update_kills_by_weapon(world_id, zone_id, character_id):
+    if not world_id or not zone_id:
         return []
 
-    rows = service.get_kills_by_weapon(world_id, match_id, character_id)
+    rows = service.get_kills_by_weapon(world_id, zone_id, character_id)
     events = []
     for row in rows:
         d = { k: v for k, v in row.items() }
@@ -277,11 +277,11 @@ def update_kills_by_weapon(world_id, match_id, character_id):
     Input(f"match_dropdown", "value"),
     Input(f"character_dropdown", "value"),
 )
-def update_vehicle_deaths_by_weapon(world_id, match_id, character_id):
-    if not world_id or not match_id:
+def update_vehicle_deaths_by_weapon(world_id, zone_id, character_id):
+    if not world_id or not zone_id:
         return []
 
-    rows = service.get_vehicle_deaths_by_weapon(world_id, match_id, character_id)
+    rows = service.get_vehicle_deaths_by_weapon(world_id, zone_id, character_id)
     events = []
     for row in rows:
         d = { k: v for k, v in row.items() }
