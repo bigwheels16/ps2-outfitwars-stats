@@ -106,7 +106,7 @@ def update_match_list(world_id):
     if not world_id:
         return []
 
-    return list(map(lambda x: {"label": x["zone_id"], "value": x["match_id"]}, service.get_match_list(world_id)))
+    return list(map(lambda x: {"label": x["zone_id"], "value": x["zone_id"]}, service.get_match_list(world_id)))
 
 
 @app.callback(
