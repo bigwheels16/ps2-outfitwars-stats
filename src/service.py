@@ -115,6 +115,44 @@ class Service:
 
         return self.db.query(sql, params)
 
+    def get_outfit_stats(self, world_id, zone_id, character_id):
+        params = {"world_id": world_id, "zone_id": zone_id}
+
+        sql = """
+            SELECT
+                COUNT(1) as num_players,
+                AVG(c.battle_rank * (1 + c.is_prestige)) AS avg_battle_rank,
+                AVG(c.minutes_played) / 60 AS avg_hours_played,
+                extract(epoch from now()) - AVG(c.created_at) AS avg_player_age,
+                extract(epoch from now()) - AVG(c.member_since) AS avg_member_age,
+                f.alias AS faction,
+                COALESCE(o.alias, c.outfit_id::varchar) AS outfit
+            FROM (
+                SELECT
+
+                    e.character_id
+                FROM gain_experience_event e
+                WHERE
+                    e.world_id = :world_id
+                    AND e.zone_id = :zone_id
+                GROUP BY
+                  e.character_id
+            ) t
+                LEFT JOIN character_info c ON t.character_id = c.character_id
+                LEFT JOIN outfit_info o ON c.outfit_id = o.outfit_id
+                LEFT JOIN faction_info f ON o.faction_id = f.faction_id
+        """
+
+        if character_id:
+            sql += " WHERE t.character_id = :character_id "
+            params["character_id"] = character_id
+
+        sql += """
+            GROUP BY
+                outfit,
+                faction
+        """
+
     def get_kills_by_weapon(self, world_id, zone_id, character_id):
         params = {"world_id": world_id, "zone_id": zone_id}
 

@@ -48,13 +48,15 @@ service = Service(db)
 div = html.Div(children=[
     html.H1(children="PS2 Outfit Wars Stats"),
 
-    html.Div(id="output1"),
+    html.Div(id="outfit_stats"),
 
-    html.Div(id="output2"),
+    html.Div(id="vehicle_kills"),
 
-    html.Div(id="output3"),
+    html.Div(id="infantry_stats"),
 
-    html.Div(id="output4"),
+    html.Div(id="infantry_kills"),
+
+    html.Div(id="vehicle_deaths"),
 ])
 
 grid = dui.Grid(_id=f"grid", num_rows=2, num_cols=1, grid_padding=5)
@@ -122,7 +124,41 @@ def update_character_list(world_id, zone_id):
 
 
 @app.callback(
-    Output(f"output1", "children"),
+    Output(f"outfit_stats", "children"),
+    Input(f"world_dropdown", "value"),
+    Input(f"match_dropdown", "value"),
+    Input(f"character_dropdown", "value"),
+)
+def update_outfit_stats(world_id, zone_id, character_id):
+    if not world_id or not zone_id:
+        return []
+
+    rows = service.get_outfit_stats(world_id, zone_id, character_id)
+    events = []
+    for row in rows:
+        d = { k: v for k, v in row.items() }
+
+        d['avg_battle_rank'] = round(d['avg_battle_rank'])
+        d['avg_hours_played'] = round(d['avg_hours_played'])
+        d['avg_player_age'] = round(d['avg_player_age'])
+
+        events.append(d)
+
+    df2 = pd.DataFrame(events)
+
+    return [
+        html.H1("Outfit Stats"),
+        dash_table.DataTable(data=df2.to_dict("records"),
+                             columns=[{"name": i, "id": i} for i in df2.columns],
+                             page_size=5,
+                             sort_action="native",
+                             sort_by=[{"column_id": "outfit", "direction": "desc"}],
+                             page_action="native")
+        ]
+
+
+@app.callback(
+    Output(f"vehicle_kills", "children"),
     Input(f"world_dropdown", "value"),
     Input(f"match_dropdown", "value"),
     Input(f"character_dropdown", "value"),
@@ -185,7 +221,7 @@ def update_vehicle_kills(world_id, zone_id, character_id):
 
 
 @app.callback(
-    Output(f"output2", "children"),
+    Output(f"infantry_stats", "children"),
     Input(f"world_dropdown", "value"),
     Input(f"match_dropdown", "value"),
     Input(f"character_dropdown", "value"),
@@ -241,7 +277,7 @@ def update_infantry_stats(world_id, zone_id, character_id):
 
 
 @app.callback(
-    Output(f"output3", "children"),
+    Output(f"infantry_kills", "children"),
     Input(f"world_dropdown", "value"),
     Input(f"match_dropdown", "value"),
     Input(f"character_dropdown", "value"),
@@ -272,7 +308,7 @@ def update_kills_by_weapon(world_id, zone_id, character_id):
 
 
 @app.callback(
-    Output(f"output4", "children"),
+    Output(f"vehicle_deaths", "children"),
     Input(f"world_dropdown", "value"),
     Input(f"match_dropdown", "value"),
     Input(f"character_dropdown", "value"),
