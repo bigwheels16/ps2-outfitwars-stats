@@ -121,10 +121,10 @@ class Service:
         sql = """
             SELECT
                 COUNT(1) as num_players,
-                AVG(c.battle_rank * (1 + c.is_prestige)) AS avg_battle_rank,
-                AVG(c.minutes_played) / 60 AS avg_hours_played,
-                extract(epoch from now()) - AVG(c.created_at) AS avg_player_age,
-                extract(epoch from now()) - AVG(c.member_since) AS avg_member_age,
+                ROUND(AVG(c.battle_rank * (1 + c.is_prestige))) AS avg_battle_rank,
+                ROUND(AVG(c.minutes_played) / 60) AS avg_hours_played,
+                ROUND((extract(epoch from now()) - AVG(c.created_at)) / 86400) AS avg_player_age_days,
+                ROUND((extract(epoch from now()) - AVG(c.member_since)) / 86400) AS avg_member_age_days,
                 f.alias AS faction,
                 COALESCE(o.alias, c.outfit_id::varchar) AS outfit
             FROM (

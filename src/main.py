@@ -138,10 +138,6 @@ def update_outfit_stats(world_id, zone_id, character_id):
     for row in rows:
         d = { k: v for k, v in row.items() }
 
-        d['avg_battle_rank'] = round(d['avg_battle_rank'])
-        d['avg_hours_played'] = round(d['avg_hours_played'])
-        d['avg_player_age'] = round(d['avg_player_age'])
-
         events.append(d)
 
     df2 = pd.DataFrame(events)
