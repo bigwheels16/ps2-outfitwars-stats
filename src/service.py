@@ -153,6 +153,8 @@ class Service:
                 faction
         """
 
+        return self.db.query(sql, params)
+
     def get_kills_by_weapon(self, world_id, zone_id, character_id):
         params = {"world_id": world_id, "zone_id": zone_id}
 
