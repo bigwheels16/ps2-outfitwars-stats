@@ -149,8 +149,9 @@ def update_outfit_stats(world_id, zone_id, character_id):
                              page_size=5,
                              sort_action="native",
                              sort_by=[{"column_id": "outfit", "direction": "desc"}],
-                             page_action="native")
-        ]
+                             page_action="native"),
+        html.Br()
+    ]
 
 
 @app.callback(
@@ -300,7 +301,7 @@ def update_kills_by_weapon(world_id, zone_id, character_id):
                              sort_action="native",
                              sort_by=[{"column_id": "kills", "direction": "desc"}],
                              page_action="native")
-        ]
+    ]
 
 
 @app.callback(
@@ -331,4 +332,4 @@ def update_vehicle_deaths_by_weapon(world_id, zone_id, character_id):
                              sort_action="native",
                              sort_by=[{"column_id": "deaths", "direction": "desc"}],
                              page_action="native")
-        ]
+    ]
