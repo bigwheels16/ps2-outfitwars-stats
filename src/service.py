@@ -16,7 +16,7 @@ class Service:
                 e.world_id = :world_id
                 AND e.zone_id > 1000
             ORDER BY
-                e.zone_id asc
+                e.zone_id DESC
         """
 
         return self.db.query(sql, {"world_id": world_id})
