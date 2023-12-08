@@ -214,7 +214,10 @@ def update_vehicle_kills(world_id, zone_id, character_id):
         figure=fig,
         config=conf
     )
-    return [graph]
+    return [
+        graph,
+        html.Br(),
+    ]
 
 
 @app.callback(
@@ -270,7 +273,10 @@ def update_infantry_stats(world_id, zone_id, character_id):
         figure=fig,
         config=conf
     )
-    return [graph]
+    return [
+        graph,
+        html.Br(),
+    ]
 
 
 @app.callback(

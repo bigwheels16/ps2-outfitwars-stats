@@ -149,8 +149,11 @@ class Service:
 
         sql += """
             GROUP BY
-                outfit,
+                o.alias,
+                c.outfit_id,
                 faction
+            ORDER BY
+                o.alias
         """
 
         return self.db.query(sql, params)
