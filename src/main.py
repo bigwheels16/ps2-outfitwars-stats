@@ -81,9 +81,12 @@ app.layout = dui.Layout(
 )
 
 
+# https://colorkit.co/color-shades-generator
 colors = [
     ["#1e487b", "#3278cd", "#84aee1"],
-    ["#961c03", "#fb2f04", "#fc8269"]
+    ["#961c03", "#fb2f04", "#fc8269"],
+    ["#61911f", "#85c42d", "#91ca4c"],
+    ["#5a226b", "#a33ec1", "#cc94dd"],
 ]
 
 
@@ -186,6 +189,7 @@ def update_vehicle_kills(world_id, zone_id, character_ids):
 
     color_map = {}
     for j, category in enumerate(["Opponent", "Team Kill", "Suicide"]):
+        # for i, outfit in enumerate([v for k, v in sorted(d.items(), key=lambda item: item[1])]): print(i, outfit)
         for i, outfit in enumerate(sorted(outfits)):
             if len(colors) > i and len(colors[i]) > j:
                 color_map["[%s] %s" % (outfit, category)] = colors[i][j]
