@@ -70,7 +70,7 @@ controlpanel.create_group(
 
 world_dropdown = components.create_dropdown(f"world", "World", util.format_for_dropdown("name", "world_id", service.get_world_list()), "1", multi=False)
 match_dropdown = components.create_dropdown(f"match", "Match", list(), None, multi=False)
-character_dropdown = components.create_dropdown(f"character", "Character", list(), None, multi=False)
+character_dropdown = components.create_dropdown(f"character", "Character", list(), [], multi=True)
 controlpanel.add_element(world_dropdown, "Options")
 controlpanel.add_element(match_dropdown, "Options")
 controlpanel.add_element(character_dropdown, "Options")
@@ -129,11 +129,11 @@ def update_character_list(world_id, zone_id):
     Input(f"match_dropdown", "value"),
     Input(f"character_dropdown", "value"),
 )
-def update_outfit_stats(world_id, zone_id, character_id):
+def update_outfit_stats(world_id, zone_id, character_ids):
     if not world_id or not zone_id:
         return []
 
-    rows = service.get_outfit_stats(world_id, zone_id, character_id)
+    rows = service.get_outfit_stats(world_id, zone_id, character_ids)
     events = []
     for row in rows:
         d = { k: v for k, v in row.items() }
@@ -160,7 +160,7 @@ def update_outfit_stats(world_id, zone_id, character_id):
     Input(f"match_dropdown", "value"),
     Input(f"character_dropdown", "value"),
 )
-def update_vehicle_kills(world_id, zone_id, character_id):
+def update_vehicle_kills(world_id, zone_id, character_ids):
     if not world_id or not zone_id:
         return []
 
@@ -168,7 +168,7 @@ def update_vehicle_kills(world_id, zone_id, character_id):
     col2 = "Kills"
     col3 = "Attacker"
 
-    results = service.get_vehicle_kills(world_id, zone_id, character_id)
+    results = service.get_vehicle_kills(world_id, zone_id, character_ids)
     # print(vehicles_killed_list)
 
     col1_values = []
@@ -226,7 +226,7 @@ def update_vehicle_kills(world_id, zone_id, character_id):
     Input(f"match_dropdown", "value"),
     Input(f"character_dropdown", "value"),
 )
-def update_infantry_stats(world_id, zone_id, character_id):
+def update_infantry_stats(world_id, zone_id, character_ids):
     if not world_id or not zone_id:
         return []
 
@@ -234,7 +234,7 @@ def update_infantry_stats(world_id, zone_id, character_id):
     col2 = "Count"
     col3 = "Outfit"
 
-    results = service.get_infantry_stats(world_id, zone_id, character_id)
+    results = service.get_infantry_stats(world_id, zone_id, character_ids)
 
     # print(vehicles_killed_list)
 
@@ -285,11 +285,11 @@ def update_infantry_stats(world_id, zone_id, character_id):
     Input(f"match_dropdown", "value"),
     Input(f"character_dropdown", "value"),
 )
-def update_kills_by_weapon(world_id, zone_id, character_id):
+def update_kills_by_weapon(world_id, zone_id, character_ids):
     if not world_id or not zone_id:
         return []
 
-    rows = service.get_kills_by_weapon(world_id, zone_id, character_id)
+    rows = service.get_kills_by_weapon(world_id, zone_id, character_ids)
     events = []
     for row in rows:
         d = { k: v for k, v in row.items() }
@@ -306,7 +306,8 @@ def update_kills_by_weapon(world_id, zone_id, character_id):
                              page_size=20,
                              sort_action="native",
                              sort_by=[{"column_id": "kills", "direction": "desc"}],
-                             page_action="native")
+                             page_action="native"),
+        html.Br(),
     ]
 
 
@@ -316,11 +317,11 @@ def update_kills_by_weapon(world_id, zone_id, character_id):
     Input(f"match_dropdown", "value"),
     Input(f"character_dropdown", "value"),
 )
-def update_vehicle_deaths_by_weapon(world_id, zone_id, character_id):
+def update_vehicle_deaths_by_weapon(world_id, zone_id, character_ids):
     if not world_id or not zone_id:
         return []
 
-    rows = service.get_vehicle_deaths_by_weapon(world_id, zone_id, character_id)
+    rows = service.get_vehicle_deaths_by_weapon(world_id, zone_id, character_ids)
     events = []
     for row in rows:
         d = { k: v for k, v in row.items() }

@@ -39,7 +39,7 @@ class Service:
 
         return self.db.query(sql, {"world_id": world_id, "zone_id": zone_id})
 
-    def get_vehicle_kills(self, world_id, zone_id, character_id):
+    def get_vehicle_kills(self, world_id, zone_id, character_ids):
         params = {"world_id": world_id, "zone_id": zone_id}
 
         sql = """
@@ -62,9 +62,12 @@ class Service:
                 AND e.zone_id = :zone_id
         """
 
-        if character_id:
-            sql += " AND (e.character_id = :character_id OR e.attacker_character_id = :character_id) "
-            params["character_id"] = character_id
+        if character_ids:
+            sql += " AND ("
+            sql += " OR ".join([f"e.character_id = :character_id{idx} OR e.attacker_character_id = :character_id{idx}" for idx, q in enumerate(character_ids)])
+            sql += ")"
+            for idx, q in enumerate(character_ids):
+                params[f"character_id{idx}"] = q
 
         sql += """
             GROUP BY
@@ -82,7 +85,7 @@ class Service:
 
         return self.db.query(sql, params)
 
-    def get_infantry_stats(self, world_id, zone_id, character_id):
+    def get_infantry_stats(self, world_id, zone_id, character_ids):
         params = {"world_id": world_id, "zone_id": zone_id}
 
         sql = """
@@ -101,9 +104,12 @@ class Service:
                 AND e.experience_id IN (1, 2, 3, 4, 5, 6, 7, 37, 51, 53, 56, 30, 142, 201, 233, 277, 335, 355, 592)
         """
 
-        if character_id:
-            sql += " AND e.character_id = :character_id "
-            params["character_id"] = character_id
+        if character_ids:
+            sql += " AND ( "
+            sql += " OR ".join([f"t.character_id = :character_id{idx}" for idx, q in enumerate(character_ids)])
+            sql += " ) "
+            for idx, q in enumerate(character_ids):
+                params[f"character_id{idx}"] = q
 
         sql += """
             GROUP BY
@@ -115,7 +121,7 @@ class Service:
 
         return self.db.query(sql, params)
 
-    def get_outfit_stats(self, world_id, zone_id, character_id):
+    def get_outfit_stats(self, world_id, zone_id, character_ids):
         params = {"world_id": world_id, "zone_id": zone_id}
 
         sql = """
@@ -143,9 +149,11 @@ class Service:
                 LEFT JOIN faction_info f ON o.faction_id = f.faction_id
         """
 
-        if character_id:
-            sql += " WHERE t.character_id = :character_id "
-            params["character_id"] = character_id
+        if character_ids:
+            sql += " WHERE "
+            sql += " OR ".join([f"t.character_id = :character_id{idx}" for idx, q in enumerate(character_ids)])
+            for idx, q in enumerate(character_ids):
+                params[f"character_id{idx}"] = q
 
         sql += """
             GROUP BY
@@ -158,7 +166,7 @@ class Service:
 
         return self.db.query(sql, params)
 
-    def get_kills_by_weapon(self, world_id, zone_id, character_id):
+    def get_kills_by_weapon(self, world_id, zone_id, character_ids):
         params = {"world_id": world_id, "zone_id": zone_id}
 
         sql = """
@@ -182,9 +190,12 @@ class Service:
                 AND e.zone_id = :zone_id
         """
 
-        if character_id:
-            sql += " AND (e.character_id = :character_id OR e.attacker_character_id = :character_id) "
-            params["character_id"] = character_id
+        if character_ids:
+            sql += " AND ("
+            sql += " OR ".join([f"e.character_id = :character_id{idx} OR e.attacker_character_id = :character_id{idx}" for idx, q in enumerate(character_ids)])
+            sql += ")"
+            for idx, q in enumerate(character_ids):
+                params[f"character_id{idx}"] = q
 
         sql += """
             GROUP BY
@@ -197,7 +208,7 @@ class Service:
 
         return self.db.query(sql, params)
 
-    def get_vehicle_deaths_by_weapon(self, world_id, zone_id, character_id):
+    def get_vehicle_deaths_by_weapon(self, world_id, zone_id, character_ids):
         params = {"world_id": world_id, "zone_id": zone_id}
 
         sql = """
@@ -220,9 +231,12 @@ class Service:
                 AND e.zone_id = :zone_id
         """
 
-        if character_id:
-            sql += " AND (e.character_id = :character_id OR e.attacker_character_id = :character_id) "
-            params["character_id"] = character_id
+        if character_ids:
+            sql += " AND ("
+            sql += " OR ".join([f"e.character_id = :character_id{idx} OR e.attacker_character_id = :character_id{idx}" for idx, q in enumerate(character_ids)])
+            sql += ")"
+            for idx, q in enumerate(character_ids):
+                params[f"character_id{idx}"] = q
 
         sql += """
             GROUP BY
