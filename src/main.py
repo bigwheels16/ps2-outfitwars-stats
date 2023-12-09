@@ -7,6 +7,7 @@ import components
 import dash_ui as dui
 import config
 from db import DB
+from collections import Counter
 
 
 external_stylesheets = [
@@ -178,26 +179,28 @@ def update_vehicle_kills(world_id, zone_id, character_ids):
     col1_values = []
     col2_values = []
     col3_values = []
-    outfits = set()
+    outfits = Counter()
     for row in results:
         vehicle_name = "%s %s" % (row['vehicle_category'], row['vehicle_name']) if row['vehicle_category'] else row['vehicle_name']
 
         col2_values.append(row["num"])
         col1_values.append(f"{vehicle_name} [{row['defender_outfit']}]")
         col3_values.append(get_attacker(row))
-        if row["attacker_outfit"] and row["attacker_outfit"] != "N/A":
-            outfits.add(row["attacker_outfit"])
-
-    outfits.add("N/A")
+        if row["attacker_outfit"]:
+            outfits[row["attacker_outfit"]] += 1
 
     color_map = {}
+    col3_order = []
     for j, category in enumerate(["Opponent", "Team Kill", "Suicide"]):
         # for i, outfit in enumerate([v for k, v in sorted(d.items(), key=lambda item: item[1])]): print(i, outfit)
-        for i, outfit in enumerate(sorted(outfits)):
+        for i, outfit in enumerate(dict(outfits.most_common()).keys()):
             if len(colors) > i and len(colors[i]) > j:
-                color_map["[%s] %s" % (outfit, category)] = colors[i][j]
+                outfit_category = "[%s] %s" % (outfit, category)
+                color_map[outfit_category] = colors[i][j]
+                col3_order.append(outfit_category)
+
     color_map["Unknown"] = "black"
-    print(color_map)
+    print(col3_order)
 
     #print(color_map)
     #print(color_map.keys())
@@ -214,7 +217,7 @@ def update_vehicle_kills(world_id, zone_id, character_ids):
                  color_discrete_map=color_map,
                  category_orders={
                      col1: sorted(set(df[col1].values)),
-                     col3: color_map.keys()})
+                     col3: col3_order)
 
     conf = dict({"autosizable": True, "sendData": True, "displayModeBar": True, "modeBarButtonsToRemove": ['zoom', 'pan']})
     graph = dcc.Graph(
