@@ -191,7 +191,7 @@ def update_vehicle_kills(world_id, zone_id, character_ids):
 
     color_map = {}
     col3_order = []
-    for j, category in enumerate(["Opponent", "Team Kill", "Suicide"]):
+    for j, category in enumerate(["Opponent", "Team Kill", "Self Kill"]):
         # for i, outfit in enumerate([v for k, v in sorted(d.items(), key=lambda item: item[1])]): print(i, outfit)
         for i, outfit in enumerate(dict(outfits.most_common()).keys()):
             if len(colors) > i and len(colors[i]) > j:
@@ -200,10 +200,6 @@ def update_vehicle_kills(world_id, zone_id, character_ids):
                 col3_order.append(outfit_category)
 
     color_map["Unknown"] = "black"
-    print(col3_order)
-
-    #print(color_map)
-    #print(color_map.keys())
 
     # assume you have a "long-form" data frame
     # see https://plotly.com/python/px-arguments/ for more options
@@ -226,6 +222,7 @@ def update_vehicle_kills(world_id, zone_id, character_ids):
         figure=fig,
         config=conf
     )
+
     return [
         graph,
         html.Br(),
@@ -247,8 +244,6 @@ def update_infantry_stats(world_id, zone_id, character_ids):
     col3 = "Outfit"
 
     results = service.get_infantry_stats(world_id, zone_id, character_ids)
-
-    # print(vehicles_killed_list)
 
     col1_values = []
     col2_values = []
@@ -285,6 +280,7 @@ def update_infantry_stats(world_id, zone_id, character_ids):
         figure=fig,
         config=conf
     )
+
     return [
         graph,
         html.Br(),

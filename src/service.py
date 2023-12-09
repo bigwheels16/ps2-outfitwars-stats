@@ -134,16 +134,15 @@ class Service:
                 ROUND((extract(epoch from now()) - AVG(c.created_at)) / 86400) AS avg_player_age_days,
                 ROUND((extract(epoch from now()) - AVG(c.member_since)) / 86400) AS avg_member_age_days
             FROM (
-                SELECT
-
-                    e.character_id
-                FROM gain_experience_event e
-                WHERE
-                    e.world_id = :world_id
-                    AND e.zone_id = :zone_id
-                GROUP BY
-                  e.character_id
-            ) t
+                    SELECT
+                        e.character_id
+                    FROM gain_experience_event e
+                    WHERE
+                        e.world_id = :world_id
+                        AND e.zone_id = :zone_id
+                    GROUP BY
+                      e.character_id
+                ) t
                 LEFT JOIN character_info c ON t.character_id = c.character_id
                 LEFT JOIN outfit_info o ON c.outfit_id = o.outfit_id
                 LEFT JOIN faction_info f ON o.faction_id = f.faction_id
