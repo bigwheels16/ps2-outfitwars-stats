@@ -217,7 +217,8 @@ def update_vehicle_kills(world_id, zone_id, character_ids):
                  color_discrete_map=color_map,
                  category_orders={
                      col1: sorted(set(df[col1].values)),
-                     col3: col3_order)
+                     col3: col3_order
+                 })
 
     conf = dict({"autosizable": True, "sendData": True, "displayModeBar": True, "modeBarButtonsToRemove": ['zoom', 'pan']})
     graph = dcc.Graph(
