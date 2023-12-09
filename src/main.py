@@ -168,8 +168,8 @@ def update_vehicle_kills(world_id, zone_id, character_ids):
     if not world_id or not zone_id:
         return []
 
-    col1 = "Vehicles Lost"
-    col2 = "Kills"
+    col1 = "Vehicle"
+    col2 = "Amount Lost"
     col3 = "Attacker"
 
     results = service.get_vehicle_kills(world_id, zone_id, character_ids)
@@ -197,6 +197,7 @@ def update_vehicle_kills(world_id, zone_id, character_ids):
             if len(colors) > i and len(colors[i]) > j:
                 color_map["[%s] %s" % (outfit, category)] = colors[i][j]
     color_map["Unknown"] = "black"
+    print(color_map)
 
     #print(color_map)
     #print(color_map.keys())
