@@ -106,7 +106,7 @@ class Service:
 
         if character_ids:
             sql += " AND ( "
-            sql += " OR ".join([f"t.character_id = :character_id{idx}" for idx, q in enumerate(character_ids)])
+            sql += " OR ".join([f"e.character_id = :character_id{idx}" for idx, q in enumerate(character_ids)])
             sql += " ) "
             for idx, q in enumerate(character_ids):
                 params[f"character_id{idx}"] = q
