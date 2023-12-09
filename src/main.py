@@ -82,6 +82,7 @@ app.layout = dui.Layout(
 
 
 # https://colorkit.co/color-shades-generator
+# https://mdigi.tools/color-shades/
 colors = [
     ["#1e487b", "#3278cd", "#84aee1"],
     ["#961c03", "#fb2f04", "#fc8269"],
@@ -184,8 +185,10 @@ def update_vehicle_kills(world_id, zone_id, character_ids):
         col2_values.append(row["num"])
         col1_values.append(f"{vehicle_name} [{row['defender_outfit']}]")
         col3_values.append(get_attacker(row))
-        if row["attacker_outfit"]:
+        if row["attacker_outfit"] and row["attacker_outfit"] != "N/A":
             outfits.add(row["attacker_outfit"])
+
+    outfits.add("N/A")
 
     color_map = {}
     for j, category in enumerate(["Opponent", "Team Kill", "Suicide"]):
