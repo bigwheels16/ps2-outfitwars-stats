@@ -170,7 +170,7 @@ class Service:
 
         sql = """
             SELECT
-                COALESCE(w.name, CASE WHEN e.attacker_weapon_id = 0 THEN 'Ram/Roadkill/Fall' ELSE e.attacker_weapon_id::varchar END) AS weapon,
+                COALESCE(w.name, e.attacker_weapon_id::varchar) AS weapon,
                 attacker_vehicle_info.name AS vehicle_name,
                 COALESCE(attacker_outfit.alias, attacker.outfit_id::varchar) AS attacker_outfit,
                 COUNT(1) AS kills,
@@ -212,7 +212,7 @@ class Service:
 
         sql = """
             SELECT
-                COALESCE(w.name, CASE WHEN e.attacker_weapon_id = 0 THEN 'Ram/Roadkill/Fall' ELSE e.attacker_weapon_id::varchar END) AS weapon,
+                COALESCE(w.name, e.attacker_weapon_id::varchar) AS weapon,
                 defender_vehicle_info.name AS vehicle_name,
                 COALESCE(defender_outfit.alias, defender.outfit_id::varchar) AS defender_outfit,
                 COUNT(1) AS deaths,

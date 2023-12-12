@@ -169,7 +169,7 @@ def update_vehicle_kills(world_id, zone_id, character_ids):
     if not world_id or not zone_id:
         return []
 
-    col1 = "Vehicle"
+    col1 = "Vehicle [Outfit]"
     col2 = "Amount Lost"
     col3 = "Attacker"
 
@@ -209,7 +209,7 @@ def update_vehicle_kills(world_id, zone_id, character_ids):
         col3: col3_values
     })
 
-    fig = px.bar(df, x=col2, y=col1, color=col3, barmode="relative", height=800, title="Vehicles Lost by Team",
+    fig = px.bar(df, x=col2, y=col1, color=col3, barmode="relative", height=800, title="Vehicles Lost",
                  color_discrete_map=color_map,
                  category_orders={
                      col1: sorted(set(df[col1].values)),
@@ -239,7 +239,7 @@ def update_infantry_stats(world_id, zone_id, character_ids):
     if not world_id or not zone_id:
         return []
 
-    col1 = "Action"
+    col1 = "Action [Outfit]"
     col2 = "Count"
     col3 = "Outfit"
 
