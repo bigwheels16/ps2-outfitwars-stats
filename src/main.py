@@ -158,7 +158,7 @@ def update_outfit_stats(world_id, zone_id, character_ids):
                              columns=[{"name": i, "id": i} for i in df2.columns],
                              page_size=5,
                              sort_action="native",
-                             sort_by=[{"column_id": "outfit", "direction": "desc"}],
+                             sort_by=[{"column_id": "num_players", "direction": "desc"}],
                              page_action="native"),
         html.Br()
     ]

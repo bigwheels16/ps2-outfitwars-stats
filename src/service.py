@@ -159,8 +159,6 @@ class Service:
                 o.alias,
                 c.outfit_id,
                 faction
-            ORDER BY
-                num_players DESC
         """
 
         return self.db.query(sql, params)
