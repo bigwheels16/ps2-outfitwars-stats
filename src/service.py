@@ -27,7 +27,7 @@ class Service:
                 DISTINCT COALESCE(o.alias, o.name, c.outfit_id::varchar) AS outfit,
                 COALESCE(c.name, e.character_id::varchar) AS name,
                 e.character_id
-            FROM death_event e
+            FROM gain_experience_event e
                 LEFT JOIN character_info c ON e.character_id = c.character_id
                 LEFT JOIN outfit_info o ON c.outfit_id = o.outfit_id
             WHERE
