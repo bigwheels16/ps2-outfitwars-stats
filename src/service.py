@@ -76,7 +76,7 @@ class Service:
                 attacker_outfit.alias,
                 defender_outfit.alias,
                 defender_vehicle_info.name,
-                defender_vehicle_info.vehicle_id,
+                e.character_vehicle_id,
                 defender_vehicle_info.category,
                 is_suicide
             ORDER BY
