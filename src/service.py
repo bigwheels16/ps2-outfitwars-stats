@@ -26,7 +26,7 @@ class Service:
             SELECT
                 DISTINCT COALESCE(o.alias, o.name, c.outfit_id::varchar) AS outfit,
                 COALESCE(c.name, e.character_id::varchar) AS name,
-                c.character_id
+                e.character_id
             FROM death_event e
                 LEFT JOIN character_info c ON e.character_id = c.character_id
                 LEFT JOIN outfit_info o ON c.outfit_id = o.outfit_id
@@ -48,7 +48,7 @@ class Service:
                 COALESCE(attacker_outfit.alias, attacker.outfit_id::varchar) AS attacker_outfit,
                 COALESCE(defender_outfit.alias, defender.outfit_id::varchar) AS defender_outfit,
                 defender_vehicle_info.name AS vehicle_name,
-                defender_vehicle_info.vehicle_id AS vehicle_id,
+                e.character_vehicle_id AS vehicle_id,
                 defender_vehicle_info.category AS vehicle_category,
                 e.character_id = e.attacker_character_id AS is_suicide
             FROM vehicle_destroy_event e
