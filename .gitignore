@@ -2,3 +2,4 @@
 /venv
 /dev.bat
 /src/__pycache__/*.pyc
+/.local

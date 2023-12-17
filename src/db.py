@@ -14,44 +14,71 @@ class DB:
         self.engine = None
 
     def connect(self, drivername, username, password, database, host, ip_type):
-        # https://github.com/GoogleCloudPlatform/cloud-sql-python-connector#how-to-use-this-connector
-        # https://github.com/GoogleCloudPlatform/python-docs-samples/blob/main/cloud-sql/postgres/sqlalchemy/connect_connector_auto_iam_authn.py
-        connector = Connector()
+        if ":" in host:
+            # https://github.com/GoogleCloudPlatform/cloud-sql-python-connector#how-to-use-this-connector
+            # https://github.com/GoogleCloudPlatform/python-docs-samples/blob/main/cloud-sql/postgres/sqlalchemy/connect_connector_auto_iam_authn.py
+            connector = Connector()
 
-        enable_iam_auth = "@" in username
+            enable_iam_auth = "@" in username
 
-        def get_conn():
-            conn = connector.connect(
-                host,
-                drivername,
-                user=username,
-                password=None if enable_iam_auth else password,
-                db=database,
-                ip_type=IPTypes[ip_type],
-                timeout=5,
-                enable_iam_auth=enable_iam_auth,
+            def get_conn():
+                conn = connector.connect(
+                    host,
+                    drivername,
+                    user=username,
+                    password=None if enable_iam_auth else password,
+                    db=database,
+                    ip_type=IPTypes[ip_type],
+                    timeout=5,
+                    enable_iam_auth=enable_iam_auth,
+                )
+                return conn
+
+            self.engine = sqlalchemy.create_engine(
+                f"postgresql+{drivername}://",
+                creator=get_conn,
+                # Pool size is the maximum number of permanent connections to keep.
+                pool_size=5,
+                # Temporarily exceeds the set pool_size if no connections are available.
+                max_overflow=2,
+                # The total number of concurrent connections for your application will be
+                # a total of pool_size and max_overflow.
+                # 'pool_timeout' is the maximum number of seconds to wait when retrieving a
+                # new connection from the pool. After the specified amount of time, an
+                # exception will be thrown.
+                pool_timeout=5,  # 30 seconds
+                # 'pool_recycle' is the maximum number of seconds a connection can persist.
+                # Connections that live longer than the specified amount of time will be
+                # re-established
+                pool_recycle=1800,  # 30 minutes
+                isolation_level = "AUTOCOMMIT",
             )
-            return conn
-
-        self.engine = sqlalchemy.create_engine(
-            f"postgresql+{drivername}://",
-            creator=get_conn,
-            # Pool size is the maximum number of permanent connections to keep.
-            pool_size=5,
-            # Temporarily exceeds the set pool_size if no connections are available.
-            max_overflow=2,
-            # The total number of concurrent connections for your application will be
-            # a total of pool_size and max_overflow.
-            # 'pool_timeout' is the maximum number of seconds to wait when retrieving a
-            # new connection from the pool. After the specified amount of time, an
-            # exception will be thrown.
-            pool_timeout=5,  # 30 seconds
-            # 'pool_recycle' is the maximum number of seconds a connection can persist.
-            # Connections that live longer than the specified amount of time will be
-            # re-established
-            pool_recycle=1800,  # 30 minutes
-            isolation_level = "AUTOCOMMIT",
-        )
+        else:
+            self.engine = sqlalchemy.create_engine(
+                sqlalchemy.engine.url.URL.create(
+                    drivername=f"postgresql+{drivername}",
+                    username=username,
+                    password=password,
+                    host=host,
+                    port=5432,
+                    database=database,
+                ),
+                # Pool size is the maximum number of permanent connections to keep.
+                pool_size=5,
+                # Temporarily exceeds the set pool_size if no connections are available.
+                max_overflow=2,
+                # The total number of concurrent connections for your application will be
+                # a total of pool_size and max_overflow.
+                # 'pool_timeout' is the maximum number of seconds to wait when retrieving a
+                # new connection from the pool. After the specified amount of time, an
+                # exception will be thrown.
+                pool_timeout=5,  # 30 seconds
+                # 'pool_recycle' is the maximum number of seconds a connection can persist.
+                # Connections that live longer than the specified amount of time will be
+                # re-established
+                pool_recycle=1800,  # 30 minutes
+                isolation_level = "AUTOCOMMIT",
+            )
 
     def _execute_wrapper(self, db_conn, sql, params, callback):
         if db_conn:

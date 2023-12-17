@@ -8,6 +8,7 @@ import dash_ui as dui
 import config
 from db import DB
 from collections import Counter
+from urllib.parse import parse_qs
 
 
 external_stylesheets = [
@@ -58,6 +59,10 @@ div = html.Div(children=[
     html.Div(id="infantry_kills"),
 
     html.Div(id="vehicle_deaths"),
+
+    dcc.Location(id="url", refresh=False),
+
+    dcc.Location(id="url2", refresh=False),
 ])
 
 grid = dui.Grid(_id=f"grid", num_rows=2, num_cols=1, grid_padding=5)
@@ -348,3 +353,39 @@ def update_vehicle_deaths_by_weapon(world_id, zone_id, character_ids):
                              sort_by=[{"column_id": "deaths", "direction": "desc"}],
                              page_action="native")
     ]
+
+@app.callback(
+    Output(f"world_dropdown", "value"),
+    Output(f"match_dropdown", "value"),
+    Output(f"character_dropdown", "value"),
+    Input("url2", "search"),
+)
+def update_params(query_string):
+    params = parse_qs(query_string[1:])
+
+    character_ids = params.get("character_ids")
+    if character_ids:
+        character_ids = character_ids[0].split(",")
+
+    return (
+        params.get("world_id", ["1"])[0],
+        params.get("match_id", [None])[0],
+        character_ids,
+    )
+
+@app.callback(
+    Output("url", "search"),
+    Input(f"world_dropdown", "value"),
+    Input(f"match_dropdown", "value"),
+    Input(f"character_dropdown", "value"),
+)
+def update_url(world_id, match_id, character_ids):
+    params = []
+    if world_id:
+        params.append(f"world_id={world_id}")
+    if match_id:
+        params.append(f"match_id={match_id}")
+    if character_ids:
+        params.append(f"character_ids={','.join(character_ids)}")
+
+    return "?" + "&".join(params)
