@@ -103,7 +103,7 @@ def get_attacker(r):
 
     category = "Opponent"
     if r['is_suicide'] == 1:
-        category = "Suicide"
+        category = "Self Kill"
     elif r['attacker_outfit'] == r['defender_outfit']:
         category = "Team Kill"
 
