@@ -97,15 +97,20 @@ colors = [
 ]
 
 
+OPPONENT_LABEL = "Opponent"
+TEAM_KILL_LABEL = "Team Kill"
+SUICIDE_LABEL = "Self Kill"
+
+
 def get_attacker(r):
     if r['attacker_outfit'] is None:
         return "Unknown"
 
-    category = "Opponent"
+    category = OPPONENT_LABEL
     if r['is_suicide'] == 1:
-        category = "Self Kill"
+        category = SUICIDE_LABEL
     elif r['attacker_outfit'] == r['defender_outfit']:
-        category = "Team Kill"
+        category = TEAM_KILL_LABEL
 
     return "[%s] %s" % (r['attacker_outfit'], category)
 
@@ -196,7 +201,7 @@ def update_vehicle_kills(world_id, zone_id, character_ids):
 
     color_map = {}
     col3_order = []
-    for j, category in enumerate(["Opponent", "Team Kill", "Self Kill"]):
+    for j, category in enumerate([OPPONENT_LABEL, TEAM_KILL_LABEL, SUICIDE_LABEL]):
         # for i, outfit in enumerate([v for k, v in sorted(d.items(), key=lambda item: item[1])]): print(i, outfit)
         for i, outfit in enumerate(dict(outfits.most_common()).keys()):
             if len(colors) > i and len(colors[i]) > j:
