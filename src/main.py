@@ -399,12 +399,12 @@ def update_timeline(world_id, zone_id):
         data.append({
             "Task": previous_row["facility"],
             "Start": previous_row["timestamp"],
-            "Finish": last_time,
+            "Finish": None,
             "Resource": previous_row["outfit"]
         })
     
-    # add 10 minutes to last_time so the ownership shows up in the graph
-    last_time += 600
+    # add 2 minutes to last_time so the ownership shows up in the graph
+    last_time += 120
 
     # set last_time for rows that didn't have a Finish time already set
     for item in data:
