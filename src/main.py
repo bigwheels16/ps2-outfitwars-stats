@@ -373,6 +373,9 @@ def update_timeline(world_id, zone_id):
 
     results = service.get_timeline(world_id, zone_id)
 
+    FACILITY_LABEL = "Facility"
+    OUTFIT_LABEL = "Outfit"
+
     data = []
     previous_row = None
     last_time = 0
@@ -383,10 +386,10 @@ def update_timeline(world_id, zone_id):
             continue
 
         data.append({
-            "Task": previous_row["facility"],
+            FACILITY_LABEL: previous_row["facility"],
             "Start": previous_row["timestamp"],
             "Finish": row["timestamp"] if row["facility_id"] == previous_row["facility_id"] else None,
-            "Resource": previous_row["outfit"]
+            OUTFIT_LABEL: previous_row["outfit"]
         })
 
         if last_time < row["timestamp"]:
@@ -397,10 +400,10 @@ def update_timeline(world_id, zone_id):
     # add the last row to the data set
     if previous_row:
         data.append({
-            "Facility": previous_row["facility"],
+            FACILITY_LABEL: previous_row["facility"],
             "Start": previous_row["timestamp"],
             "Finish": None,
-            "Outfit": previous_row["outfit"]
+            OUTFIT_LABEL: previous_row["outfit"]
         })
     
     # add extra time to last_time so the final ownership shows up in the graph
@@ -412,13 +415,13 @@ def update_timeline(world_id, zone_id):
             item["Finish"] = last_time
         print(item)
 
-    df = pd.DataFrame(data)
+    df = pd.DataFrame.from_records(data)
     if data:
         # convert unix epoc to timestamps
         df["Start"] = pd.to_datetime(df["Start"], unit="s")
         df["Finish"] = pd.to_datetime(df["Finish"], unit="s")
         print(df)
-        fig = px.timeline(df, x_start="Start", x_end="Finish", y="Facility", color="Outfit")
+        fig = px.timeline(df, x_start="Start", x_end="Finish", y=FACILITY_LABEL, color=OUTFIT_LABEL)
     else:
         fig = None
 
