@@ -60,6 +60,8 @@ div = html.Div(children=[
 
     html.Div(id="vehicle_deaths"),
 
+    html.Div(id="timeline"),
+    
     dcc.Location(id="url", refresh=False),
 
     dcc.Location(id="url2", refresh=False),
@@ -359,6 +361,74 @@ def update_vehicle_deaths_by_weapon(world_id, zone_id, character_ids):
                              page_action="native")
     ]
 
+
+@app.callback(
+    Output(f"timeline", "children"),
+    Input(f"world_dropdown", "value"),
+    Input(f"match_dropdown", "value"),
+)
+def update_timeline(world_id, zone_id):
+    if not world_id or not zone_id:
+        return []
+
+    results = service.get_timeline(world_id, zone_id)
+
+    data = []
+    previous_row = None
+    last_time = 0
+    for row in results:
+        if not previous_row:
+            previous_row = row
+            last_time = row["timestamp"]
+            continue
+
+        data.append({
+            "Task": previous_row["facility"],
+            "Start": previous_row["timestamp"],
+            "Finish": row["timestamp"] if row["facility_id"] == previous_row["facility_id"] else None,
+            "Resource": previous_row["outfit"]
+        })
+
+        if last_time < row["timestamp"]:
+            last_time = row["timestamp"]
+
+        previous_row = row
+
+    if previous_row:
+        data.append({
+            "Task": previous_row["facility"],
+            "Start": previous_row["timestamp"],
+            "Finish": last_time,
+            "Resource": previous_row["outfit"]
+        })
+
+    for item in data:
+        if not item["Finish"]:
+            item["Finish"] = last_time
+
+    print(data)
+
+    df = pd.DataFrame(None)
+
+    fig = px.timeline(df, x_start="Start", x_end="Finish", y="Task", color="Resource") if data else None
+
+    conf = dict({
+        "autosizable": True,
+        "sendData": True,
+        "displayModeBar": True,
+        "modeBarButtonsToRemove": ['zoom', 'pan']
+    })
+
+    return [
+        dcc.Graph(
+            id="timeline_chart",
+            figure=fig,
+            config=conf
+        ),
+        html.Br(),
+    ]
+
+
 @app.callback(
     Output(f"world_dropdown", "value"),
     Output(f"match_dropdown", "value"),
@@ -377,6 +447,7 @@ def update_params(query_string):
         params.get("match_id", [None])[0],
         character_ids,
     )
+
 
 @app.callback(
     Output("url", "search"),

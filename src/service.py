@@ -245,3 +245,27 @@ class Service:
         """
 
         return self.db.query(sql, params)
+
+    def get_timeline(self, world_id, zone_id):
+        params = {"world_id": world_id, "zone_id": zone_id}
+
+        sql = """
+            SELECT
+                COALESCE(f.name, e.facility_id::varchar) AS facility,
+                e.new_faction_id,
+                COALESCE(o.alias, o.name, e.outfit_id::varchar) AS outfit,
+                e.outfit_id,
+                e.timestamp
+            FROM
+                facility_control_event e
+                LEFT JOIN facility_info f on e.facility_id = f.facility_id
+                LEFT JOIN outfit_info o ON e.outfit_id = o.outfit_id
+            WHERE
+                e.world_id = :world_id
+                AND e.zone_id = :zone_id
+            ORDER BY
+                e.facility_id ASC,
+                e.timestamp ASC
+        """
+
+        return self.db.query(sql, params)
