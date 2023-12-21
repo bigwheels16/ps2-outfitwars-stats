@@ -397,10 +397,10 @@ def update_timeline(world_id, zone_id):
     # add the last row to the data set
     if previous_row:
         data.append({
-            "Task": previous_row["facility"],
+            "Facility": previous_row["facility"],
             "Start": previous_row["timestamp"],
             "Finish": None,
-            "Resource": previous_row["outfit"]
+            "Outfit": previous_row["outfit"]
         })
     
     # add extra time to last_time so the ownership shows up in the graph
@@ -417,7 +417,7 @@ def update_timeline(world_id, zone_id):
         df["Start"] = pd.to_datetime(df["Start"], unit="s")
         df["Finish"] = pd.to_datetime(df["Finish"], unit="s")
         print(df)
-        fig = px.timeline(df, x_start="Start", x_end="Finish", y="Task", color="Resource")
+        fig = px.timeline(df, x_start="Start", x_end="Finish", y="Facility", color="Outfit")
     else:
         fig = None
 
