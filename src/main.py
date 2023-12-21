@@ -370,11 +370,11 @@ def update_vehicle_deaths_by_weapon(world_id, zone_id, character_ids):
 def update_timeline(world_id, zone_id):
     if not world_id or not zone_id:
         return []
-
+    
     results = service.get_timeline(world_id, zone_id)
 
     FACILITY_LABEL = "Facility"
-    COLOR_LABEL = "Faction"
+    COLOR_LABEL = "Team"
 
     data = []
     previous_row = None
@@ -389,7 +389,7 @@ def update_timeline(world_id, zone_id):
             FACILITY_LABEL: previous_row["facility"],
             "Start": previous_row["timestamp"],
             "Finish": row["timestamp"] if row["facility_id"] == previous_row["facility_id"] else None,
-            COLOR_LABEL: previous_row["faction"],
+            COLOR_LABEL: previous_row["team"],
             "Outfit": previous_row["outfit"],
         })
 
@@ -404,41 +404,49 @@ def update_timeline(world_id, zone_id):
             FACILITY_LABEL: previous_row["facility"],
             "Start": previous_row["timestamp"],
             "Finish": None,
-            COLOR_LABEL: previous_row["faction"],
+            COLOR_LABEL: previous_row["team"],
             "Outfit": previous_row["outfit"],
         })
     
     # add extra time to last_time so the final ownership shows up in the graph
     last_time += 120
 
-    # set last_time for rows that didn't have a Finish time already set
+    # set last_time for rows that don't have a Finish time already set
     for item in data:
         if not item["Finish"]:
             item["Finish"] = last_time
 
     df = pd.DataFrame.from_records(data)
     if data:
-        # convert unix epoc to timestamps
+        # convert unix epocs to timestamps
         df["Start"] = pd.to_datetime(df["Start"], unit="s")
         df["Finish"] = pd.to_datetime(df["Finish"], unit="s")
-        fig = px.timeline(df, x_start="Start", x_end="Finish", y=FACILITY_LABEL, color=COLOR_LABEL)
-    else:
-        fig = None
-
-    conf = dict({
-        "autosizable": True,
-        "sendData": True,
-        "displayModeBar": True,
-        "modeBarButtonsToRemove": ['zoom', 'pan']
-    })
-
-    return [
-        html.H1("Facility Control Timeline"),
-        dcc.Graph(
+        
+        fig = px.timeline(df, x_start="Start", x_end="Finish", y=FACILITY_LABEL,
+                            color=COLOR_LABEL,
+                            hover_data=["Outfit"],
+                            color_discrete_map={"Omega (Blue)": "#1e487b", "Alpha (Red)": "#961c03"})
+        
+        conf = dict({
+            "autosizable": True,
+            "sendData": True,
+            "displayModeBar": True,
+            "modeBarButtonsToRemove": ['zoom', 'pan']
+        })
+        
+        graph = dcc.Graph(
             id="timeline_chart",
             figure=fig,
             config=conf
-        ),
+        )
+    else:
+        graph = None
+
+    
+
+    return [
+        html.H1("Facility Control Timeline"),
+        graph,
         html.Br(),
     ]
 

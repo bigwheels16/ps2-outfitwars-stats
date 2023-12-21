@@ -255,13 +255,12 @@ class Service:
                 e.facility_id,
                 e.new_faction_id,
                 COALESCE(o.alias, o.name, e.outfit_id::varchar) AS outfit,
-                faction.name AS faction,
+                CASE WHEN e.new_faction_id = 2 THEN 'Omega (Blue)' WHEN e.new_faction_id = 3 THEN 'Alpha (Red)' ELSE 'Unknown' END AS team,
                 e.timestamp
             FROM
                 facility_control_event e
                 LEFT JOIN facility_info f on e.facility_id = f.facility_id
                 LEFT JOIN outfit_info o ON e.outfit_id = o.outfit_id
-                LEFT JOIN faction_info faction on e.new_faction_id = f.faction_id
             WHERE
                 e.world_id = :world_id
                 AND e.zone_id = :zone_id
