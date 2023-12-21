@@ -263,6 +263,7 @@ class Service:
             WHERE
                 e.world_id = :world_id
                 AND e.zone_id = :zone_id
+                AND e.outfit_id != 0
             ORDER BY
                 e.facility_id ASC,
                 e.timestamp ASC

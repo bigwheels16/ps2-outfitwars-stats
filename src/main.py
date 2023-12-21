@@ -403,7 +403,7 @@ def update_timeline(world_id, zone_id):
             "Resource": previous_row["outfit"]
         })
     
-    # add 2 minutes to last_time so the ownership shows up in the graph
+    # add extra time to last_time so the ownership shows up in the graph
     last_time += 120
 
     # set last_time for rows that didn't have a Finish time already set
