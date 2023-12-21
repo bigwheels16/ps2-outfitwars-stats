@@ -251,19 +251,21 @@ class Service:
 
         sql = """
             SELECT
-                COALESCE(f.name, e.facility_id::varchar) AS facility,
+                f.name AS facility,
                 e.facility_id,
                 e.new_faction_id,
                 COALESCE(o.alias, o.name, e.outfit_id::varchar) AS outfit,
+                faction.name AS faction,
                 e.timestamp
             FROM
                 facility_control_event e
                 LEFT JOIN facility_info f on e.facility_id = f.facility_id
                 LEFT JOIN outfit_info o ON e.outfit_id = o.outfit_id
+                LEFT JOIN faction_info faction on e.new_faction_id = f.faction_id
             WHERE
                 e.world_id = :world_id
                 AND e.zone_id = :zone_id
-                AND e.outfit_id != 0
+                AND e.new_faction_id != 4
             ORDER BY
                 e.facility_id ASC,
                 e.timestamp ASC
