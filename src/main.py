@@ -382,12 +382,12 @@ def update_timeline(world_id, zone_id):
             last_time = row["timestamp"]
             continue
 
-        data.append(dict(
-            Task=previous_row["facility"],
-            Start=previous_row["timestamp"],
-            Finish=row["timestamp"] if row["facility_id"] == previous_row["facility_id"] else None,
-            Resource=previous_row["outfit"]
-        ))
+        data.append({
+            "Task": previous_row["facility"],
+            "Start": previous_row["timestamp"],
+            "Finish": row["timestamp"] if row["facility_id"] == previous_row["facility_id"] else None,
+            "Resource": previous_row["outfit"]
+        })
 
         if last_time < row["timestamp"]:
             last_time = row["timestamp"]
@@ -395,21 +395,18 @@ def update_timeline(world_id, zone_id):
         previous_row = row
 
     if previous_row:
-        data.append(dict(
-            Task=previous_row["facility"],
-            Start=previous_row["timestamp"],
-            Finish=last_time,
-            Resource=previous_row["outfit"]
-        ))
+        data.append({
+            "Task": previous_row["facility"],
+            "Start": previous_row["timestamp"],
+            "Finish": last_time,
+            "Resource": previous_row["outfit"]
+        })
 
     for item in data:
         if not item["Finish"]:
             item["Finish"] = last_time
 
-    print(data)
-
-    df = pd.DataFrame(None)
-
+    df = pd.DataFrame(data)
     fig = px.timeline(df, x_start="Start", x_end="Finish", y="Task", color="Resource") if data else None
 
     conf = dict({
