@@ -252,9 +252,9 @@ class Service:
         sql = """
             SELECT
                 COALESCE(f.name, e.facility_id::varchar) AS facility,
+                e.facility_id,
                 e.new_faction_id,
                 COALESCE(o.alias, o.name, e.outfit_id::varchar) AS outfit,
-                e.outfit_id,
                 e.timestamp
             FROM
                 facility_control_event e
