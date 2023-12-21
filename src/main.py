@@ -394,6 +394,7 @@ def update_timeline(world_id, zone_id):
 
         previous_row = row
 
+    # add the last row to the data set
     if previous_row:
         data.append({
             "Task": previous_row["facility"],
@@ -401,13 +402,18 @@ def update_timeline(world_id, zone_id):
             "Finish": last_time,
             "Resource": previous_row["outfit"]
         })
+    
+    # add 10 minutes to last_time so the ownership shows up in the graph
+    last_time += 600
 
+    # set last_time for rows that didn't have a Finish time already set
     for item in data:
         if not item["Finish"]:
             item["Finish"] = last_time
 
     df = pd.DataFrame(data)
     if data:
+        # convert unix epoc to timestamps
         df["Start"] = pd.to_datetime(df["Start"], unit="s")
         df["Finish"] = pd.to_datetime(df["Finish"], unit="s")
         print(df)
