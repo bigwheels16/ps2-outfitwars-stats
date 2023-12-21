@@ -403,13 +403,14 @@ def update_timeline(world_id, zone_id):
             "Outfit": previous_row["outfit"]
         })
     
-    # add extra time to last_time so the ownership shows up in the graph
+    # add extra time to last_time so the final ownership shows up in the graph
     last_time += 120
 
     # set last_time for rows that didn't have a Finish time already set
     for item in data:
         if not item["Finish"]:
             item["Finish"] = last_time
+        print(item)
 
     df = pd.DataFrame(data)
     if data:
@@ -429,6 +430,7 @@ def update_timeline(world_id, zone_id):
     })
 
     return [
+        html.H1("Facility Control Timeline"),
         dcc.Graph(
             id="timeline_chart",
             figure=fig,
