@@ -407,9 +407,10 @@ def update_timeline(world_id, zone_id):
             item["Finish"] = last_time
 
     df = pd.DataFrame(data)
-    print(df)
     if data:
-        df["Task"] = pd.to_datetime(df["Task"], unit="s")
+        df["Start"] = pd.to_datetime(df["Start"], unit="s")
+        df["Finish"] = pd.to_datetime(df["Finish"], unit="s")
+        print(df)
         fig = px.timeline(df, x_start="Start", x_end="Finish", y="Task", color="Resource")
     else:
         fig = None
