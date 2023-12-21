@@ -407,7 +407,12 @@ def update_timeline(world_id, zone_id):
             item["Finish"] = last_time
 
     df = pd.DataFrame(data)
-    fig = px.timeline(df, x_start="Start", x_end="Finish", y="Task", color="Resource") if data else None
+    print(df)
+    if data:
+        df["Task"] = pd.to_datetime(df["Task"], unit="s")
+        fig = px.timeline(df, x_start="Start", x_end="Finish", y="Task", color="Resource")
+    else:
+        fig = None
 
     conf = dict({
         "autosizable": True,
