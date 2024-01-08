@@ -271,3 +271,90 @@ class Service:
         """
 
         return self.db.query(sql, params)
+
+    def get_loadouts(self, world_id, zone_id, character_ids):
+        params = {"world_id": world_id, "zone_id": zone_id}
+
+        sql = """
+            SELECT
+                'death_event' as event_type,
+                e1.attacker_loadout_id,
+                la1.profile_type AS attacker_loadout_name,
+                e1.attacker_vehicle_id,
+                va1.name as attacker_vehicle_name,
+                e1.attacker_character_id,
+                a1.name AS attacker_name,
+                ao1.alias AS attacker_outfit,
+                e1.character_loadout_id,
+                ld1.profile_type AS character_loadout_name,
+                0 as character_vehicle_id,
+                NULL as character_vehicle_name,
+                e1.character_id,
+                d1.name AS character_name,
+                do1.alias AS character_outfit,
+                e1.timestamp
+            FROM
+                death_event e1
+                LEFT JOIN character_info a1 ON e1.attacker_character_id = a1.character_id
+                LEFT JOIN outfit_info ao1 ON a1.outfit_id = ao1.outfit_id
+                LEFT JOIN character_info d1 ON e1.character_id = d1.character_id
+                LEFT JOIN outfit_info do1 ON d1.outfit_id = do1.outfit_id
+                LEFT JOIN loadout_info la1 ON e1.attacker_loadout_id = la1.loadout_id
+                LEFT JOIN loadout_info ld1 ON e1.character_loadout_id = ld1.loadout_id
+                LEFT JOIN vehicle_info va1 ON e1.attacker_vehicle_id = va1.vehicle_id
+            WHERE
+                e1.world_id = :world_id
+                AND e1.zone_id = :zone_id
+        """
+
+        if character_ids:
+            sql += " AND ("
+            sql += " OR ".join([f"e1.character_id = :character_id{idx} OR e1.attacker_character_id = :character_id{idx}" for idx, q in enumerate(character_ids)])
+            sql += ")"
+            for idx, q in enumerate(character_ids):
+                params[f"character_id{idx}"] = q
+        
+        sql += """
+            UNION
+            SELECT
+                'vehicle_destroy_event' as event_type,
+                e2.attacker_loadout_id,
+                la2.profile_type AS attacker_loadout_name,
+                e2.attacker_vehicle_id,
+                va2.name as attacker_vehicle_name,
+                e2.attacker_character_id,
+                a2.name AS attacker_name,
+                ao2.alias AS attacker_outfit,
+                0 AS character_loadout_id,
+                NULL AS character_loadout_name,
+                e2.character_vehicle_id,
+                vd2.name as character_vehicle_name,
+                e2.character_id,
+                d2.name AS character_name,
+                do2.alias AS character_outfit,
+                e2.timestamp
+            FROM
+                vehicle_destroy_event e2
+                LEFT JOIN character_info a2 ON e2.attacker_character_id = a2.character_id
+                LEFT JOIN outfit_info ao2 ON a2.outfit_id = ao2.outfit_id
+                LEFT JOIN character_info d2 ON e2.character_id = d2.character_id
+                LEFT JOIN outfit_info do2 ON d2.outfit_id = do2.outfit_id
+                LEFT JOIN loadout_info la2 ON e2.attacker_loadout_id = la2.loadout_id
+                LEFT JOIN vehicle_info va2 ON e2.attacker_vehicle_id = va2.vehicle_id
+                LEFT JOIN vehicle_info vd2 ON e2.character_vehicle_id = vd2.vehicle_id
+            WHERE
+                e2.world_id = :world_id
+                AND e2.zone_id = :zone_id
+        """
+
+        if character_ids:
+            sql += " AND ("
+            sql += " OR ".join([f"e2.character_id = :character_id{idx} OR e2.attacker_character_id = :character_id{idx}" for idx, q in enumerate(character_ids)])
+            sql += ")"
+
+        sql += """
+            ORDER BY
+                timestamp ASC, event_type
+        """
+
+        return self.db.query(sql, params)

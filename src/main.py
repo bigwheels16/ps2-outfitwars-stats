@@ -7,7 +7,7 @@ import components
 import dash_ui as dui
 import config
 from db import DB
-from collections import Counter
+from collections import Counter, defaultdict
 from urllib.parse import parse_qs
 
 
@@ -61,7 +61,11 @@ div = html.Div(children=[
     html.Div(id="vehicle_deaths"),
 
     html.Div(id="timeline"),
-    
+
+    html.Div(id="vehicle_loadouts"),
+
+    html.Div(id="infantry_loadouts"),
+
     dcc.Location(id="url", refresh=False),
 
     dcc.Location(id="url2", refresh=False),
@@ -446,6 +450,173 @@ def update_timeline(world_id, zone_id):
 
     return [
         html.H1("Facility Control Timeline"),
+        graph,
+        html.Br(),
+    ]
+
+
+@app.callback(
+    Output(f"vehicle_loadouts", "children"),
+    Input(f"world_dropdown", "value"),
+    Input(f"match_dropdown", "value"),
+    Input(f"character_dropdown", "value"),
+)
+def update_vehicle_loadouts(world_id, zone_id, character_ids):
+    if not world_id or not zone_id:
+        return []
+
+    rows = service.get_loadouts(world_id, zone_id, character_ids)
+
+    loadout_counts = Counter()
+    results = []
+    player_loadout_previous = defaultdict(int)
+    current_time = 0
+    loadout_keys = set()
+    for row in rows:
+        if current_time > 0 and row["timestamp"] > current_time:
+            d = dict(loadout_counts.most_common())
+            d["timestamp"] = current_time
+            results.append(d)
+
+        current_time = row["timestamp"]
+
+        attacker_loadout_key = "%s [%s]" % (row["attacker_vehicle_name"] or "Infantry", row["attacker_outfit"])
+        loadout_keys.add(attacker_loadout_key)
+        if row["attacker_character_id"] in player_loadout_previous:
+            loadout_counts[player_loadout_previous[row["attacker_character_id"]]] -= 1
+        loadout_counts[attacker_loadout_key] += 1
+        player_loadout_previous[row["attacker_character_id"]] = attacker_loadout_key
+        
+        character_loadout_key = "%s [%s]" % (row["character_vehicle_name"] or "Infantry", row["character_outfit"])
+        loadout_keys.add(character_loadout_key)
+        if row["character_id"] in player_loadout_previous:
+            loadout_counts[player_loadout_previous[row["character_id"]]] -= 1
+        loadout_counts[character_loadout_key] += 1
+        player_loadout_previous[row["character_id"]] = character_loadout_key
+
+    if current_time > 0:
+        d = dict(loadout_counts.most_common())
+        d["timestamp"] = current_time
+        results.append(d)
+
+    df = pd.DataFrame(results)
+    df["date"] = pd.to_datetime(df["timestamp"], unit="s")
+    df.fillna(0, inplace=True)
+
+    for loadout_key in list(loadout_keys):
+        if loadout_key.startswith("Infantry"):
+            df.drop(columns=[loadout_key], inplace=True)
+            loadout_keys.remove(loadout_key)
+
+    fig = px.area(df, x="date", y=list(loadout_keys),
+                  #color_discrete_map=color_map,
+                  #hover_data={"date": "|%B %d, %Y"},
+                  labels={
+                      "variable": "Vehicle [Outfit]",
+                      "value": "Amount",
+                      "date": "Time"
+                  },
+                  category_orders={
+                      "variable": sorted(loadout_keys)
+                  },
+                  title="Vehicle Use Over Time")
+
+    conf = dict({
+        "autosizable": True,
+        "sendData": True,
+        "displayModeBar": True,
+        "modeBarButtonsToRemove": ['zoom', 'pan']
+    })
+
+    graph = dcc.Graph(
+        id="vehicle_loadouts_over_time_graph",
+        figure=fig,
+        config=conf,
+        style={"height": "600px", "width": "100%"}
+    )
+
+    return [
+        graph,
+        html.Br(),
+    ]
+
+
+@app.callback(
+    Output(f"infantry_loadouts", "children"),
+    Input(f"world_dropdown", "value"),
+    Input(f"match_dropdown", "value"),
+    Input(f"character_dropdown", "value"),
+)
+def update_infantry_loadouts(world_id, zone_id, character_ids):
+    if not world_id or not zone_id:
+        return []
+
+    rows = service.get_loadouts(world_id, zone_id, character_ids)
+
+    loadout_counts = Counter()
+    results = []
+    player_loadout_previous = defaultdict(int)
+    current_time = 0
+    loadout_keys = set()
+    for row in rows:
+        if current_time > 0 and row["timestamp"] > current_time:
+            d = dict(loadout_counts.most_common())
+            d["timestamp"] = current_time
+            results.append(d)
+
+        current_time = row["timestamp"]
+
+        attacker_loadout_key = "%s [%s]" % ("Vehicle" if row["attacker_vehicle_name"] else row["attacker_loadout_name"], row["attacker_outfit"])
+        loadout_keys.add(attacker_loadout_key)
+        if row["attacker_character_id"] in player_loadout_previous:
+            loadout_counts[player_loadout_previous[row["attacker_character_id"]]] -= 1
+        loadout_counts[attacker_loadout_key] += 1
+        player_loadout_previous[row["attacker_character_id"]] = attacker_loadout_key
+        
+        character_loadout_key = "%s [%s]" % ("Vehicle" if row["character_vehicle_name"] else row["character_loadout_name"], row["character_outfit"])
+        loadout_keys.add(character_loadout_key)
+        if row["character_id"] in player_loadout_previous:
+            loadout_counts[player_loadout_previous[row["character_id"]]] -= 1
+        loadout_counts[character_loadout_key] += 1
+        player_loadout_previous[row["character_id"]] = character_loadout_key
+
+    if current_time > 0:
+        d = dict(loadout_counts.most_common())
+        d["timestamp"] = current_time
+        results.append(d)
+
+    df = pd.DataFrame(results)
+    df["date"] = pd.to_datetime(df["timestamp"], unit="s")
+    df.fillna(0, inplace=True)
+
+    fig = px.area(df, x="date", y=list(loadout_keys),
+                  #color_discrete_map=color_map,
+                  #hover_data={"date": "|%B %d, %Y"},labels={
+                  labels={
+                      "variable": "Loadout [Outfit]",
+                      "value": "Amount",
+                      "date": "Time"
+                  },
+                  category_orders={
+                      "variable": sorted(loadout_keys)
+                  },
+                  title="Infantry Loadouts Over Time")
+
+    conf = dict({
+        "autosizable": True,
+        "sendData": True,
+        "displayModeBar": True,
+        "modeBarButtonsToRemove": ['zoom', 'pan']
+    })
+
+    graph = dcc.Graph(
+        id="infantry_loadouts_over_time_graph",
+        figure=fig,
+        config=conf,
+        style={"height": "600px", "width": "100%"}
+    )
+
+    return [
         graph,
         html.Br(),
     ]
